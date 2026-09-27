@@ -1,5 +1,6 @@
-import { Component, computed, input, output } from "@angular/core";
+import { Component, computed, inject, input, output } from "@angular/core";
 import { IconComponent } from "../icon/icon.component";
+import { BreakpointService } from "../../../core/services/breakpoint.service";
 
 export interface SwipeOption {
     label: string;
@@ -29,6 +30,8 @@ export class SwipeItemComponent {
 
     readonly optionSelected = output<SwipeOption>();
 
+    private readonly breakpointService = inject(BreakpointService);
+
     onStart(event: PointerEvent) {
         this.dragging = true;
         this.animate = false;
@@ -36,6 +39,9 @@ export class SwipeItemComponent {
         (event.target as HTMLElement).setPointerCapture(event.pointerId);
     }
     onMove(event: PointerEvent) {
+
+        if (this.breakpointService.isDesktop()) return;
+
         if (!this.dragging) return;
 
         this.currentX = event.clientX;
