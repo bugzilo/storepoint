@@ -1,13 +1,19 @@
 @if (visible()) {
   <div [ngClass]="hostClasses()" role="alert">
-    <i stp-icon [name]="resolvedIcon()" class="stp-alert__icon icon--md"></i>
+    <i
+      stp-icon
+      [name]="resolvedIcon()"
+      class="stp-alert__icon"
+      [class.icon--md]="hasTitle()"
+      [class.icon--xs]="!hasTitle()"
+    ></i>
 
     <div class="stp-alert__body">
       @if (title()) {
         <strong class="stp-alert__title">{{ title() }}</strong>
       }
-      @if (message()) {
-        <p class="stp-alert__message">{{ message() }}</p>
+      @if (resolvedMessage()) {
+        <p class="stp-alert__message" [innerHTML]="resolvedMessage()"></p>
       }
       <ng-content />
     </div>

@@ -1,0 +1,269 @@
+<div class="add-step">
+
+  <!-- ── 1. Top Subheader / Back navigation ────────────────────── -->
+  <div class="add-step__sub-header">
+    <button
+      type="button"
+      class="add-step__back-btn"
+      aria-label="Volver a la lista de productos"
+      (click)="back.emit()">
+      <i stp-icon name="arrow-left" class="icon--sm"></i>
+      <span>Volver a la orden</span>
+    </button>
+    <span class="add-step__sub-badge">
+      @if (isProductAlreadyInOrder()) {
+        <stp-badge variant="info" badgeStyle="light" size="sm">Ya en la orden</stp-badge>
+      } @else {
+        <stp-badge variant="primary" badgeStyle="light" size="sm">Nuevo producto</stp-badge>
+      }
+    </span>
+  </div>
+
+  <!-- ── 2. Form Body ───────────────────────────────────────────── -->
+  <div class="add-step__body">
+
+    <!-- Section 1: Selector de Proveedor con stp-search-dropdown -->
+    <section class="add-step__section" aria-label="Selección de proveedor">
+      <div class="add-step__field-header">
+        <label class="add-step__label font-semibold">
+          <i stp-icon name="storefront" class="icon--xs text-primary-c"></i>
+          Proveedor *
+        </label>
+        <span class="add-step__hint text-secondary">Busca por nombre o RUC</span>
+      </div>
+
+      <stp-search-dropdown
+        size="md"
+        placeholder="Escribe el nombre o RUC del proveedor..."
+        [items]="suppliers()"
+        labelKey="name"
+        descriptionKey="ruc"
+        [openOnFocus]="true"
+        [maxResults]="10"
+        [(value)]="supplierQuery"
+        (selected)="onSupplierSelect($event)">
+        <ng-template #itemTemplate let-sup let-active="isActive">
+          <div class="sup-option" [class.sup-option--active]="active">
+            <div class="sup-option__icon">
+              <span>{{ getSupplierCategoryIcon(sup.category) }}</span>
+            </div>
+            <div class="sup-option__info">
+              <div class="sup-option__top">
+                <strong class="sup-option__name">{{ sup.name }}</strong>
+                <stp-tag variant="surface" size="sm">
+                  {{ getSupplierCategoryLabel(sup.category) }}
+                </stp-tag>
+              </div>
+              <div class="sup-option__bottom">
+                <span>RUC: {{ sup.ruc }}</span>
+                @if (sup.phone) {
+                  <span>· Tel: {{ sup.phone }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </stp-search-dropdown>
+
+      <!-- Active Supplier Alert con stp-alert -->
+      @if (currentSupplier(); as sup) {
+        <stp-alert
+          variant="success"
+          [description]="'Proveedor seleccionado: <strong>' + sup.name + '</strong> (RUC: ' + sup.ruc + ')'">
+        </stp-alert>
+      }
+    </section>
+
+    <!-- Section 2: Selector de Producto con stp-search-dropdown -->
+    <section class="add-step__section" aria-label="Selección de producto">
+      <div class="add-step__field-header">
+        <label class="add-step__label font-semibold">
+          <i stp-icon name="package" class="icon--xs text-primary-c"></i>
+          Producto *
+        </label>
+        <span class="add-step__hint text-secondary">Busca por nombre o categoría</span>
+      </div>
+
+      <stp-search-dropdown
+        size="md"
+        placeholder="Escribe el nombre del producto (ej: arroz, aceite, leche)..."
+        [items]="products()"
+        labelKey="name"
+        imageKey="imageUrl"
+        descriptionKey="category"
+        [openOnFocus]="true"
+        [maxResults]="15"
+        [(value)]="productQuery"
+        (selected)="onProductSelect($event)">
+        <ng-template #itemTemplate let-prod let-active="isActive">
+          <div class="prod-option" [class.prod-option--active]="active">
+            <div class="prod-option__thumb">
+              @if (prod.imageUrl) {
+                <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-option__img" />
+              } @else {
+                <i stp-icon name="package" class="icon--xs text-secondary"></i>
+              }
+            </div>
+            <div class="prod-option__info">
+              <div class="prod-option__top">
+                <strong class="prod-option__name">{{ prod.name }}</strong>
+                <stp-badge [variant]="prod.stock > 10 ? 'success' : (prod.stock > 0 ? 'warning' : 'error')" size="sm">
+                  Stock: {{ prod.stock }} {{ prod.unit }}
+                </stp-badge>
+              </div>
+              <div class="prod-option__bottom">
+                <span class="text-secondary">{{ getProductCategoryIcon(prod.category) }} {{ getProductCategoryLabel(prod.category) }}</span>
+                <span class="prod-option__price">Precio venta: S/ {{ prod.price | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </stp-search-dropdown>
+    </section>
+
+    <!-- Section 3: Selected Product Customization Box -->
+    @if (selectedProduct(); as prod) {
+      <section class="add-step__preview" aria-label="Configuración de cantidades y costo">
+        <stp-card padding="md" radius="lg">
+          <div class="prod-preview">
+            <!-- Header -->
+            <div class="prod-preview__header">
+              <div class="prod-preview__title-row">
+                <i stp-icon name="sliders" class="icon--xs text-primary-c"></i>
+                <strong class="prod-preview__title">Detalles del producto seleccionado</strong>
+              </div>
+              <button
+                type="button"
+                class="prod-preview__clear-btn"
+                title="Quitar producto seleccionado"
+                (click)="resetProduct()">
+                <i stp-icon name="x" class="icon--xs"></i>
+              </button>
+            </div>
+
+            <!-- Body Details -->
+            <div class="prod-preview__body">
+              <div class="prod-preview__media">
+                @if (prod.imageUrl) {
+                  <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-preview__img" />
+                } @else {
+                  <div class="prod-preview__placeholder">
+                    <i stp-icon name="package" class="icon--md text-secondary"></i>
+                  </div>
+                }
+              </div>
+
+              <div class="prod-preview__info">
+                <div class="prod-preview__name-row">
+                  <h4 class="prod-preview__name">{{ prod.name }}</h4>
+                  <stp-tag variant="surface" size="sm">
+                    {{ getProductCategoryIcon(prod.category) }} {{ getProductCategoryLabel(prod.category) }}
+                  </stp-tag>
+                </div>
+
+                <div class="prod-preview__meta-row">
+                  <span
+                    class="prod-preview__stock"
+                    [class.prod-preview__stock--low]="prod.stock > 0 && prod.stock <= 10"
+                    [class.prod-preview__stock--out]="prod.stock === 0">
+                    <i stp-icon name="archive" class="icon--xs"></i>
+                    Stock en tienda: <strong>{{ prod.stock }} {{ prod.unit }}(s)</strong>
+                  </span>
+                  <span class="prod-preview__price text-secondary">
+                    Precio regular venta: S/ {{ prod.price | number:'1.2-2' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controls: Quantity & Unit Cost -->
+            <div class="prod-preview__controls-panel">
+              <!-- Quantity -->
+              <div class="prod-preview__field">
+                <label class="prod-preview__field-label" for="add-product-qty">
+                  Cantidad a solicitar *
+                </label>
+                <stp-input-numeric
+                  id="add-product-qty"
+                  size="md"
+                  radius="md"
+                  [min]="1"
+                  [value]="quantity()"
+                  (valueChange)="onQuantityChange($event)" />
+              </div>
+
+              <!-- Unit Cost -->
+              <div class="prod-preview__field">
+                <label class="prod-preview__field-label" for="add-product-cost">
+                  Costo compra unitario (S/) *
+                </label>
+                <div class="prod-preview__cost-input-wrap">
+                  <span class="prod-preview__currency">S/</span>
+                  <input
+                    id="add-product-cost"
+                    type="number"
+                    step="0.10"
+                    min="0"
+                    class="prod-preview__cost-input"
+                    [value]="unitCost()"
+                    (input)="onCostInputChange($event)" />
+                </div>
+              </div>
+
+              <!-- Subtotal Calculation -->
+              <div class="prod-preview__subtotal-box">
+                <span class="prod-preview__subtotal-label">Subtotal estimado:</span>
+                <strong class="prod-preview__subtotal-val">
+                  S/ {{ subtotal() | number:'1.2-2' }}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </stp-card>
+      </section>
+    } @else {
+      <!-- Placeholder when no product chosen yet -->
+      <div class="add-step__choose-prompt">
+        <div class="add-step__prompt-icon">
+          <i stp-icon name="magnifying-glass" class="icon--lg text-primary-c"></i>
+        </div>
+        <strong class="add-step__prompt-title">Busca y selecciona un producto</strong>
+        <p class="add-step__prompt-desc">
+          Escribe en el buscador superior para elegir el producto. Podrás definir la cantidad y el costo de compra unitario antes de añadirlo a la orden.
+        </p>
+      </div>
+    }
+
+  </div><!-- /add-step__body -->
+
+  <!-- ── 3. Footer Actions ──────────────────────────────────────── -->
+  <footer class="add-step__footer">
+    <div class="add-step__footer-left">
+      <stp-button
+        variant="surface"
+        btnStyle="outlined"
+        size="md"
+        radius="md"
+        (click)="back.emit()">
+        <i stp-icon name="arrow-left" class="icon--xs"></i>
+        <span>Volver a la orden</span>
+      </stp-button>
+    </div>
+
+    <div class="add-step__footer-right">
+      <stp-button
+        variant="primary"
+        btnStyle="solid"
+        size="md"
+        radius="md"
+        [disabled]="!canAdd()"
+        (click)="onConfirm()">
+        <i stp-icon name="plus" class="icon--xs"></i>
+        <span>
+          {{ isProductAlreadyInOrder() ? 'Actualizar en la orden' : 'Agregar a la orden' }}
+        </span>
+      </stp-button>
+    </div>
+  </footer>
+
+</div>

@@ -181,5 +181,45 @@ describe('NewOrderDrawerComponent', () => {
       );
       vi.useRealTimers();
     });
+
+    it('should default to "list" step and render order products step', () => {
+      expect(createComponent['currentStep']()).toBe('list');
+      const compiled = createFixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('stp-order-products-step')).toBeTruthy();
+      expect(compiled.querySelector('stp-add-product-step')).toBeNull();
+    });
+
+    it('should switch to "add-product" step when openAddProduct is called', () => {
+      createComponent['openAddProduct']();
+      createFixture.detectChanges();
+
+      expect(createComponent['currentStep']()).toBe('add-product');
+      const compiled = createFixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('stp-add-product-step')).toBeTruthy();
+      expect(compiled.querySelector('stp-order-products-step')).toBeNull();
+    });
+
+    it('should add product to itemsDraft and return to "list" step on onProductAdded', () => {
+      createComponent['openAddProduct']();
+      createFixture.detectChanges();
+      expect(createComponent['currentStep']()).toBe('add-product');
+
+      const initialCount = createComponent['itemsDraft']().length;
+      const testProduct = createComponent['availableProducts'][5];
+
+      createComponent['onProductAdded']({
+        product: testProduct,
+        quantity: 5,
+        unitCost: 15.0,
+      });
+      createFixture.detectChanges();
+
+      expect(createComponent['currentStep']()).toBe('list');
+      expect(createComponent['itemsDraft']().length).toBe(initialCount + 1);
+      const added = createComponent['itemsDraft']().find(i => i.product.id === testProduct.id);
+      expect(added).toBeTruthy();
+      expect(added?.quantity).toBe(5);
+      expect(added?.unitCost).toBe(15.0);
+    });
   });
 });

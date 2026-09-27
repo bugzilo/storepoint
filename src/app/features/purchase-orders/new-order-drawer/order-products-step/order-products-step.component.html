@@ -1,0 +1,276 @@
+<div class="order-step">
+
+  <!-- ── 1. General Order Information Section ──────────────────── -->
+  <div class="order-step__body">
+
+    <!-- Selected Supplier Info & Selector (Visually identical to Step 2) -->
+    <section class="order-step__section" aria-label="Selección de proveedor">
+      <div class="order-step__field-header">
+        <label class="order-step__label font-semibold">
+          <i stp-icon name="storefront" class="icon--xs text-primary-c"></i>
+          Proveedor *
+        </label>
+        <span class="order-step__hint text-secondary">Busca por nombre o RUC</span>
+      </div>
+
+      <stp-search-dropdown
+        size="md"
+        placeholder="Escribe el nombre o RUC del proveedor..."
+        [items]="suppliers()"
+        labelKey="name"
+        descriptionKey="ruc"
+        [openOnFocus]="true"
+        [maxResults]="10"
+        [(value)]="supplierQuery"
+        (selected)="onSupplierSelect($event)">
+        <ng-template #itemTemplate let-sup let-active="isActive">
+          <div class="sup-option" [class.sup-option--active]="active">
+            <div class="sup-option__icon">
+              <span>{{ getSupplierCategoryIcon(sup.category) }}</span>
+            </div>
+            <div class="sup-option__info">
+              <div class="sup-option__top">
+                <strong class="sup-option__name">{{ sup.name }}</strong>
+                <stp-tag variant="surface" size="sm">
+                  {{ getSupplierCategoryLabel(sup.category) }}
+                </stp-tag>
+              </div>
+              <div class="sup-option__bottom">
+                <span>RUC: {{ sup.ruc }}</span>
+                @if (sup.phone) {
+                  <span>· Tel: {{ sup.phone }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </stp-search-dropdown>
+
+      <!-- Active Supplier Alert con stp-alert -->
+      @if (selectedSupplier(); as sup) {
+        <stp-alert
+          variant="success"
+          [description]="'Proveedor seleccionado: <strong>' + sup.name + '</strong> (RUC: ' + sup.ruc + ')'">
+        </stp-alert>
+      }
+    </section>
+
+    <!-- Payment Terms & Delivery Date -->
+    <div class="order-step__row-2">
+      <section class="order-step__section">
+        <stp-select
+          label="Condición de pago"
+          size="md"
+          [options]="paymentTermOptions"
+          [value]="paymentTerms()"
+          (valueChange)="onPaymentTermsSelect($event)" />
+      </section>
+
+      <section class="order-step__section">
+        <stp-input
+          label="Fecha estimada de entrega"
+          type="date"
+          [value]="expectedDeliveryDate()"
+          (valueChange)="onDateChange($event)" />
+      </section>
+    </div>
+
+    <!-- ── 2. Products List & Add Product CTA ───────────────────── -->
+    <section class="order-step__section" aria-label="Productos de la orden">
+      <div class="order-step__section-header">
+        <div class="order-step__section-title-wrap">
+          <span class="order-step__section-title">
+            Productos agregados
+          </span>
+          <stp-badge variant="primary" badgeStyle="light" size="sm">
+            {{ items().length }} {{ items().length === 1 ? 'producto' : 'productos' }}
+          </stp-badge>
+        </div>
+
+        <!-- Botón / Opción destacada para Agregar Producto -->
+        <stp-button
+          variant="primary"
+          btnStyle="solid"
+          size="sm"
+          radius="md"
+          (click)="addProduct.emit()">
+          <i stp-icon name="plus" class="icon--xs"></i>
+          <span>Agregar producto</span>
+        </stp-button>
+      </div>
+
+      <!-- Items List -->
+      <div class="order-step__items-list">
+        @for (item of items(); track item.product.id) {
+          <stp-card padding="sm" radius="md">
+            <div class="order-item">
+              <!-- Thumbnail -->
+              <div class="order-item__thumb">
+                @if (item.product.imageUrl) {
+                  <img [src]="item.product.imageUrl" [alt]="item.product.name" class="order-item__img" />
+                } @else {
+                  <div class="order-item__placeholder">
+                    <i stp-icon name="package" class="icon--xs text-secondary"></i>
+                  </div>
+                }
+              </div>
+
+              <!-- Product Info -->
+              <div class="order-item__info">
+                <div class="order-item__title-row">
+                  <strong class="order-item__name">{{ item.product.name }}</strong>
+                  <button
+                    type="button"
+                    class="order-item__edit-btn"
+                    title="Editar producto en formulario"
+                    (click)="onEdit(item.product)">
+                    <i stp-icon name="pencil-simple" class="icon--xs"></i>
+                  </button>
+                </div>
+                <div class="order-item__meta">
+                  <span class="order-item__unit text-secondary">
+                    {{ item.product.unit }} · S/ {{ item.unitCost | number:'1.2-2' }} c/u
+                  </span>
+                  <stp-tag variant="surface" size="sm">
+                    {{ getProductCategoryIcon(item.product.category) }} {{ getProductCategoryLabel(item.product.category) }}
+                  </stp-tag>
+                </div>
+              </div>
+
+              <!-- Stepper, Subtotal and Remove -->
+              <div class="order-item__controls">
+                <div class="order-item__numeric-group">
+                  <span class="order-item__ctrl-label">Cant:</span>
+                  <stp-input-numeric
+                    size="sm"
+                    radius="md"
+                    [min]="1"
+                    [value]="item.quantity"
+                    (valueChange)="onUpdateQty(item.product.id, $event)" />
+                </div>
+
+                <div class="order-item__subtotal">
+                  <span class="order-item__subtotal-label">Subtotal:</span>
+                  <strong class="order-item__subtotal-val">
+                    S/ {{ (item.quantity * item.unitCost) | number:'1.2-2' }}
+                  </strong>
+                </div>
+
+                <button
+                  type="button"
+                  class="order-item__remove-btn"
+                  aria-label="Eliminar producto"
+                  title="Eliminar de la orden"
+                  (click)="onRemove(item.product.id)">
+                  <i stp-icon name="trash" class="icon--sm text-error"></i>
+                </button>
+              </div>
+            </div>
+          </stp-card>
+        }
+
+        <!-- Empty state when no products -->
+        @if (items().length === 0) {
+          <div class="order-step__empty">
+            <div class="order-step__empty-icon">
+              <i stp-icon name="shopping-bag" class="icon--lg text-disabled"></i>
+            </div>
+            <strong class="order-step__empty-title">No hay productos en esta orden</strong>
+            <p class="order-step__empty-desc">
+              Agrega los productos que deseas solicitar a tu proveedor usando el formulario.
+            </p>
+            <stp-button
+              variant="primary"
+              btnStyle="solid"
+              size="md"
+              radius="md"
+              (click)="addProduct.emit()">
+              <i stp-icon name="plus" class="icon--xs"></i>
+              Agregar primer producto
+            </stp-button>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Notes -->
+    <section class="order-step__section">
+      <stp-input
+        label="Notas u observaciones para el proveedor"
+        [value]="notes()"
+        (valueChange)="onNotesChange($event)" />
+    </section>
+
+    <!-- Total Summary Card -->
+    <stp-card padding="md" radius="md">
+      <div class="order-step__total-card">
+        <div class="order-step__total-meta">
+          <span class="text-secondary font-medium">Total estimado de la orden</span>
+          <span class="order-step__total-counts text-secondary">
+            {{ items().length }} {{ items().length === 1 ? 'producto' : 'productos' }} · {{ totalUnitsCount() }} unidades
+          </span>
+        </div>
+        <strong class="order-step__total-amount">
+          S/ {{ totalAmount() | number:'1.2-2' }}
+        </strong>
+      </div>
+    </stp-card>
+
+  </div><!-- /order-step__body -->
+
+  <!-- ── 3. Footer Actions ──────────────────────────────────────── -->
+  <footer class="order-step__footer">
+    <div class="order-step__footer-left">
+      <stp-button
+        variant="surface"
+        btnStyle="outlined"
+        size="md"
+        radius="md"
+        (click)="close.emit()">
+        {{ isEditMode() ? 'Cerrar' : 'Cancelar' }}
+      </stp-button>
+    </div>
+
+    <div class="order-step__footer-right">
+      <!-- Quick add product button also in footer if items exist -->
+      @if (items().length > 0) {
+        <stp-button
+          variant="surface"
+          btnStyle="outlined"
+          size="md"
+          radius="md"
+          (click)="addProduct.emit()">
+          <i stp-icon name="plus" class="icon--xs"></i>
+          Agregar producto
+        </stp-button>
+      }
+
+      @if (isEditMode()) {
+        <stp-button
+          variant="primary"
+          btnStyle="solid"
+          size="md"
+          radius="md"
+          [disabled]="!canSubmit()"
+          [loading]="isSubmitting() && pendingActionStatus() === 'pendiente'"
+          (click)="saveChanges.emit()">
+          <i stp-icon name="check" class="icon--xs"></i>
+          Guardar cambios
+        </stp-button>
+      } @else {
+        <stp-button
+          variant="primary"
+          btnStyle="solid"
+          size="md"
+          radius="md"
+          [disabled]="!canSubmit()"
+          [loading]="isSubmitting() && pendingActionStatus() === 'pendiente'"
+          (click)="createOrder.emit()">
+          <i stp-icon name="check" class="icon--xs"></i>
+          Crear orden
+        </stp-button>
+      }
+    </div>
+  </footer>
+
+</div>

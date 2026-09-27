@@ -4,13 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { CardComponent } from '../../../shared/components/card/card.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
-import { InputNumericComponent } from '../../../shared/components/input-numeric/input-numeric.component';
-import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
-import { TagComponent } from '../../../shared/components/tag/tag.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
-import { MOCK_SUPPLIERS } from '../../suppliers/suppliers.data';
+import { MOCK_SUPPLIERS, Supplier } from '../../suppliers/suppliers.data';
 import {
   CATEGORY_ICONS,
   CATEGORY_LABELS,
@@ -26,6 +21,8 @@ import {
   getLocalDateString,
   getProductImage,
 } from '../purchase-orders.data';
+import { OrderProductsStepComponent } from './order-products-step/order-products-step.component';
+import { AddProductStepComponent } from './add-product-step/add-product-step.component';
 
 export interface OrderFormDrawerData {
   order?: PurchaseOrder;
@@ -47,20 +44,19 @@ export interface OrderItemDraft {
   unitCost: number;
 }
 
+export type NewOrderDrawerStep = 'list' | 'add-product';
+
 @Component({
   selector: 'stp-new-order-drawer',
+  standalone: true,
   imports: [
     CommonModule,
-    DecimalPipe,
     FormsModule,
     ButtonComponent,
     IconComponent,
-    CardComponent,
-    InputComponent,
-    InputNumericComponent,
-    SelectComponent,
-    TagComponent,
     BadgeComponent,
+    OrderProductsStepComponent,
+    AddProductStepComponent,
   ],
   templateUrl: './new-order-drawer.component.html',
   styleUrl: './new-order-drawer.component.scss',
@@ -82,6 +78,10 @@ export class NewOrderDrawerComponent {
   );
   protected readonly pendingActionStatus = signal<PurchaseOrderStatus | null>(null);
 
+  // Step state: default is 'list'
+  protected readonly currentStep = signal<NewOrderDrawerStep>('list');
+  protected readonly productToEdit = signal<Product | null>(null);
+
   protected readonly suppliers = MOCK_SUPPLIERS.filter(s => s.active);
   protected readonly availableProducts = MOCK_PRODUCTS;
   protected readonly categoryLabels = CATEGORY_LABELS;
@@ -99,40 +99,6 @@ export class NewOrderDrawerComponent {
       getLocalDateString(new Date(Date.now() + 86400000 * 2)),
   );
   protected readonly notes = signal<string>(this.existingOrder?.notes ?? '');
-  protected readonly selectedProductId = signal<string | number>('');
-
-  // ── Product Live Preview state ──────────────────────────────────
-  protected readonly previewProduct = signal<Product | null>(null);
-  protected readonly previewQuantity = signal<number>(10);
-  protected readonly previewUnitCost = signal<number>(0);
-
-  // Computed preview subtotal
-  protected readonly previewSubtotal = computed(() => {
-    return Number((this.previewQuantity() * this.previewUnitCost()).toFixed(2));
-  });
-
-  // Select options for stp-select
-  protected readonly supplierOptions = computed<SelectOption[]>(() =>
-    this.suppliers.map(s => ({
-      value: s.id,
-      label: `${s.name} (RUC: ${s.ruc})`,
-    })),
-  );
-
-  protected readonly paymentTermOptions: SelectOption[] = [
-    { value: 'Contado', label: 'Contado' },
-    { value: 'Crédito 15 días', label: 'Crédito 15 días' },
-    { value: 'Crédito 30 días', label: 'Crédito 30 días' },
-    { value: 'Crédito 60 días', label: 'Crédito 60 días' },
-  ];
-
-  protected readonly productOptions = computed<SelectOption[]>(() => [
-    { value: '', label: 'Seleccionar producto...' },
-    ...this.availableProducts.map(p => ({
-      value: p.id,
-      label: `${p.name} (${p.unit})`,
-    })),
-  ]);
 
   // Selected items draft
   protected readonly itemsDraft = signal<OrderItemDraft[]>(this.initializeItemsDraft());
@@ -195,58 +161,43 @@ export class NewOrderDrawerComponent {
     ];
   }
 
-  // ── Product Selection & Preview Handlers ───────────────────────
-  protected onAddProductSelect(value: string | number): void {
-    const id = Number(value);
-    if (!id) {
-      this.previewProduct.set(null);
-      return;
-    }
-    const prod = this.availableProducts.find(p => p.id === id);
-    if (!prod) return;
-
-    // Show in preview card with suggested cost and quantity
-    this.previewProduct.set(prod);
-    this.previewQuantity.set(10);
-    this.previewUnitCost.set(Number((prod.price * 0.8).toFixed(2)));
+  // ── Step Navigation Handlers ──────────────────────────────────
+  protected openAddProduct(): void {
+    this.productToEdit.set(null);
+    this.currentStep.set('add-product');
   }
 
-  protected inspectProduct(product: Product): void {
-    const existing = this.itemsDraft().find(i => i.product.id === product.id);
-    this.previewProduct.set(product);
-    this.previewQuantity.set(existing?.quantity ?? 10);
-    this.previewUnitCost.set(
-      existing?.unitCost ?? Number((product.price * 0.8).toFixed(2)),
-    );
+  protected openEditProduct(product: Product): void {
+    this.productToEdit.set(product);
+    this.currentStep.set('add-product');
   }
 
-  protected closePreview(): void {
-    this.previewProduct.set(null);
-    this.selectedProductId.set('');
+  protected closeAddProduct(): void {
+    this.productToEdit.set(null);
+    this.currentStep.set('list');
   }
 
-  protected confirmAddPreviewedProduct(): void {
-    const prod = this.previewProduct();
-    if (!prod) return;
-
-    const qty = Math.max(1, this.previewQuantity());
-    const cost = Math.max(0, this.previewUnitCost());
-
+  protected onProductAdded(draft: OrderItemDraft): void {
     this.itemsDraft.update(items => {
-      const existingIndex = items.findIndex(i => i.product.id === prod.id);
+      const existingIndex = items.findIndex(i => i.product.id === draft.product.id);
       if (existingIndex >= 0) {
         return items.map((item, idx) =>
           idx === existingIndex
-            ? { ...item, quantity: item.quantity + qty, unitCost: cost }
+            ? { ...item, quantity: draft.quantity, unitCost: draft.unitCost }
             : item,
         );
       }
-      return [...items, { product: prod, quantity: qty, unitCost: cost }];
+      return [...items, draft];
     });
 
-    this.closePreview();
+    this.closeAddProduct();
   }
 
+  protected onSupplierChange(supplierId: number | string): void {
+    this.selectedSupplierId.set(Number(supplierId));
+  }
+
+  // ── Items Management Handlers ─────────────────────────────────
   protected updateQty(productId: number, qty: number | undefined): void {
     const safeQty = Math.max(1, qty ?? 1);
     this.itemsDraft.update(items =>
@@ -266,8 +217,8 @@ export class NewOrderDrawerComponent {
 
   protected removeItem(productId: number): void {
     this.itemsDraft.update(items => items.filter(i => i.product.id !== productId));
-    if (this.previewProduct()?.id === productId) {
-      this.closePreview();
+    if (this.productToEdit()?.id === productId) {
+      this.closeAddProduct();
     }
   }
 

@@ -20,6 +20,7 @@ const ICON_MAP: Record<AlertVariant, string> = {
 export class AlertComponent {
   readonly variant = input<AlertVariant>('info');
   readonly title = input<string>('');
+  readonly description = input<string>('');
   readonly message = input<string>('');
   readonly dismissible = input<boolean>(false);
   readonly icon = input<string | null>(null);
@@ -28,6 +29,12 @@ export class AlertComponent {
 
   protected readonly visible = signal(true);
 
+  protected readonly resolvedMessage = computed(
+    () => this.description() || this.message(),
+  );
+
+  protected readonly hasTitle = computed(() => !!this.title()?.trim());
+
   protected readonly resolvedIcon = computed(
     () => this.icon() ?? ICON_MAP[this.variant()],
   );
@@ -35,6 +42,7 @@ export class AlertComponent {
   protected readonly hostClasses = computed(() => ({
     'stp-alert': true,
     [`stp-alert--${this.variant()}`]: true,
+    'stp-alert--no-title': !this.hasTitle(),
   }));
 
   protected dismiss(): void {

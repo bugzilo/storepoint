@@ -201,7 +201,7 @@
         </div>
 
         <div class="demo-group">
-            <p class="demo-group__title">Variants</p>
+            <p class="demo-group__title">Variants · con título y mensaje</p>
             <div class="demo-stack">
                 <stp-alert variant="info"
                     title="Información"
@@ -215,6 +215,20 @@
                 <stp-alert variant="error"
                     title="Error"
                     message="No se pudo completar la operación. Intenta nuevamente." />
+            </div>
+        </div>
+
+        <div class="demo-group">
+            <p class="demo-group__title">Solo descripción / Modo compacto (sin título)</p>
+            <div class="demo-stack">
+                <stp-alert variant="success"
+                    description="Proveedor seleccionado: <strong>Distribuidora Norte SAC</strong> (RUC: 20512345678)" />
+                <stp-alert variant="info"
+                    description="Se aplicó una condición de pago a 30 días para esta orden." />
+                <stp-alert variant="warning"
+                    description="Stock limitado: solo quedan 5 unidades disponibles en tienda." />
+                <stp-alert variant="error"
+                    description="El producto seleccionado no cuenta con precio de compra configurado." />
             </div>
         </div>
 
