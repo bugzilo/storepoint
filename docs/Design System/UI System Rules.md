@@ -68,6 +68,25 @@ Antes de dar por finalizado un componente UI nuevo o refactorizado, agrégalo a 
 
 ---
 
+## 7. Estandarización de Cabeceras de Página y Botones de Acción
+> [!IMPORTANT]
+> **Consistencia en cabeceras de página**: Todas las cabeceras principales de módulos (`.suppliers-header`, `.purchase-orders-header`, `.sale-header`, etc.) deben compartir los mismos tokens de diseño:
+> - `padding: var(--p-5);`
+> - `background-color: var(--color-primary);`
+> - `border-radius: 1.25rem;`
+> - `box-shadow: var(--shadow-md);`
+>
+> **Botones de acción dentro de cabeceras**: Los botones de acción ubicados dentro de la cabecera (por ejemplo, `+ Nuevo proveedor`, `+ Nueva orden`) deben configurarse de forma uniforme:
+> ```html
+> <stp-button variant="primary" btnStyle="solid" size="md" radius="md" (click)="openDrawer()">
+>   <i stp-icon name="plus" style="font-size: 1rem"></i>
+>   Nuevo registro
+> </stp-button>
+> ```
+> **Prohibido**: Nunca uses `variant="surface"` en botones dentro de cabeceras primarias, ya que genera cajas blancas de alto contraste que rompen la armonía visual establecida en `Proveedores`.
+
+---
+
 ## 🔗 Referencias
 - [[Design System MOC]]
 - [[Tokens & Theming]]

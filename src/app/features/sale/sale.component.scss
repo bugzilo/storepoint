@@ -22,8 +22,8 @@
 /* ── Header ───────────────────────────────────────────────── */
 
 .sale-header {
-    padding: var(--p-5) var(--p-5) var(--p-4);
-    background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 80%, #7c3aed) 100%);
+    padding: var(--p-5);
+    background-color: var(--color-primary);
     border-radius: 1.25rem;
     box-shadow: var(--shadow-md);
 

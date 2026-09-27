@@ -61,6 +61,9 @@ Botón universal del sistema con soporte para 8 variantes cromáticas y 3 estilo
 </stp-button>
 ```
 
+> [!TIP]
+> **Patrón en Cabeceras de Página**: En botones de acción dentro de cabeceras de página principales (azules), usa siempre `variant="primary" btnStyle="solid" size="md" radius="md"` con un `<i stp-icon name="plus">` para integrarse armoniosamente con el fondo sin generar bloques blancos desproporcionados (como en `Proveedores` y `Órdenes de Compra`).
+
 ---
 
 ## 🏷️ Visualización & Feedback

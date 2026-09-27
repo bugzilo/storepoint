@@ -76,6 +76,7 @@ These rules are **mandatory**. Follow them on every template and SCSS file.
 5. **Use SCSS partials** — import breakpoints and z-index from shared files, never redefine them.
 6. **Live preview** — visit `/demo` to see every component rendered with all variants.
 7. **Document business rules** — whenever creating, modifying or refactoring business logic, calculations, or state transitions, update `docs/Features/Reglas-De-Negocio.md`.
+8. **Standardize page headers & action buttons** — Primary page headers use `padding: var(--p-5); background-color: var(--color-primary); border-radius: 1.25rem; box-shadow: var(--shadow-md);`. Action buttons inside page headers MUST use `<stp-button variant="primary" btnStyle="solid" size="md" radius="md">` with an `<i stp-icon name="plus"></i>` (as in `suppliers` and `purchase-orders`). NEVER use `variant="surface"` in blue headers, which creates harsh, high-contrast white boxes.
 
 ---
 
