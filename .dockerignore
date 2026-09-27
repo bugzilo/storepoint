@@ -12,6 +12,13 @@ ios/
 .env
 .env.*
 
+# Git and CI/CD
+.git/
+.github/
+
 # Editor / OS
+.vscode/
+.claude/
 .DS_Store
 *.log
+
