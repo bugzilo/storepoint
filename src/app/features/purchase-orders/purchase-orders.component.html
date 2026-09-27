@@ -188,6 +188,22 @@
                     </div>
 
                     <div class="order-card__actions">
+                        @if (isConfirmed(order)) {
+                        <!-- CONFIRMADO: Download PDF enabled -->
+                        <stp-button variant="primary" btnStyle="outlined" size="sm" radius="md"
+                            (click)="downloadPdf(order, $event)">
+                            <i stp-icon name="download-simple" class="icon--xs"></i>
+                            Descargar PDF
+                        </stp-button>
+                        } @else if (order.status === 'completado') {
+                        <!-- COMPLETADO: Download PDF enabled -->
+                        <stp-button variant="surface" btnStyle="outlined" size="sm" radius="md"
+                            (click)="downloadPdf(order, $event)">
+                            <i stp-icon name="download-simple" class="icon--xs"></i>
+                            PDF
+                        </stp-button>
+                        }
+
                         @if (isEditable(order)) {
                         <!-- PENDIENTE: Can edit directly -->
                         <stp-button variant="primary" btnStyle="solid" size="sm" radius="md"
@@ -195,37 +211,8 @@
                             <i stp-icon name="pencil-simple" class="icon--xs"></i>
                             Editar
                         </stp-button>
-                        <stp-button variant="surface" btnStyle="outlined" size="sm" radius="md"
-                            (click)="openOrderDetail(order)">
-                            <i stp-icon name="eye" class="icon--xs"></i>
-                            Detalle
-                        </stp-button>
-                        } @else if (isConfirmed(order)) {
-                        <!-- CONFIRMADO: Informative, Download PDF enabled -->
-                        <stp-button variant="primary" btnStyle="outlined" size="sm" radius="md"
-                            (click)="downloadPdf(order, $event)">
-                            <i stp-icon name="download-simple" class="icon--xs"></i>
-                            Descargar PDF
-                        </stp-button>
-                        <stp-button variant="surface" btnStyle="solid" size="sm" radius="md"
-                            (click)="openOrderDetail(order)">
-                            <i stp-icon name="eye" class="icon--xs"></i>
-                            Detalle
-                        </stp-button>
-                        } @else if (order.status === 'completado') {
-                        <!-- COMPLETADO: Informative, Download PDF enabled -->
-                        <stp-button variant="surface" btnStyle="outlined" size="sm" radius="md"
-                            (click)="downloadPdf(order, $event)">
-                            <i stp-icon name="download-simple" class="icon--xs"></i>
-                            PDF
-                        </stp-button>
-                        <stp-button variant="surface" btnStyle="solid" size="sm" radius="md"
-                            (click)="openOrderDetail(order)">
-                            <i stp-icon name="eye" class="icon--xs"></i>
-                            Detalle
-                        </stp-button>
                         } @else {
-                        <!-- CANCELADO: Informative -->
+                        <!-- OTROS ESTADOS: Informative detail -->
                         <stp-button variant="surface" btnStyle="solid" size="sm" radius="md"
                             (click)="openOrderDetail(order)">
                             <i stp-icon name="eye" class="icon--xs"></i>

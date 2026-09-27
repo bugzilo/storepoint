@@ -19,6 +19,7 @@ import {
   ProductCategory,
 } from '../../sale/sale.data';
 import {
+  PURCHASE_ORDER_STATUS_CONFIG,
   PurchaseOrder,
   PurchaseOrderItem,
   PurchaseOrderStatus,
@@ -73,6 +74,13 @@ export class NewOrderDrawerComponent {
   // Mode: creation vs edit
   protected readonly existingOrder = this.data?.order ?? null;
   protected readonly isEditMode = computed(() => !!this.existingOrder);
+
+  // Status configuration and state
+  protected readonly statusConfig = PURCHASE_ORDER_STATUS_CONFIG;
+  protected readonly currentStatus = signal<PurchaseOrderStatus>(
+    this.existingOrder?.status ?? 'pendiente',
+  );
+  protected readonly pendingActionStatus = signal<PurchaseOrderStatus | null>(null);
 
   protected readonly suppliers = MOCK_SUPPLIERS.filter(s => s.active);
   protected readonly availableProducts = MOCK_PRODUCTS;
@@ -270,16 +278,37 @@ export class NewOrderDrawerComponent {
   // ── Submission Handlers ────────────────────────────────────────
 
   /**
-   * Save order as 'pendiente' (draft or edited).
+   * Create a new purchase order. The default initial status is always 'pendiente'.
+   */
+  protected createOrder(): void {
+    this.pendingActionStatus.set('pendiente');
+    this.submitWithStatus('pendiente', 'created');
+  }
+
+  /**
+   * Save changes to an existing pending purchase order.
+   */
+  protected saveChanges(): void {
+    this.pendingActionStatus.set('pendiente');
+    this.submitWithStatus('pendiente', 'updated');
+  }
+
+  /**
+   * Backward-compatibility alias for createOrder / saveChanges.
    */
   protected saveAsPending(): void {
-    this.submitWithStatus('pendiente', this.isEditMode() ? 'updated' : 'created');
+    if (this.isEditMode()) {
+      this.saveChanges();
+    } else {
+      this.createOrder();
+    }
   }
 
   /**
    * Confirm order ('confirmado'). Once confirmed, cannot be edited.
    */
   protected confirmOrder(): void {
+    this.pendingActionStatus.set('confirmado');
     this.submitWithStatus('confirmado', 'confirmed');
   }
 
@@ -287,6 +316,7 @@ export class NewOrderDrawerComponent {
    * Cancel order ('cancelado'). Can only be cancelled while in 'pendiente'.
    */
   protected cancelOrder(): void {
+    this.pendingActionStatus.set('cancelado');
     this.submitWithStatus('cancelado', 'cancelled');
   }
 
@@ -294,9 +324,13 @@ export class NewOrderDrawerComponent {
     status: PurchaseOrderStatus,
     action: OrderFormAction,
   ): void {
-    if (!this.canSubmit() && action !== 'cancelled') return;
+    if (!this.canSubmit() && action !== 'cancelled') {
+      this.pendingActionStatus.set(null);
+      return;
+    }
 
     this.isSubmitting.set(true);
+    this.currentStatus.set(status);
     const supplier = this.selectedSupplier();
 
     const items: PurchaseOrderItem[] = this.itemsDraft().map(draft => ({
@@ -334,6 +368,7 @@ export class NewOrderDrawerComponent {
 
     setTimeout(() => {
       this.isSubmitting.set(false);
+      this.pendingActionStatus.set(null);
       this.sheetRef.dismiss({ savedOrder, action });
     }, 300);
   }

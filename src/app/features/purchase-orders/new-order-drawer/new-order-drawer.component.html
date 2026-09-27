@@ -11,12 +11,10 @@
                 <h2 class="new-order-drawer__title">
                     {{ isEditMode() ? 'Editar Orden ' + existingOrder?.code : 'Nueva Orden de Compra' }}
                 </h2>
-                @if (isEditMode()) {
-                <stp-badge variant="warning" badgeStyle="solid" size="sm">
-                    <i stp-icon name="clock" class="icon--xs"></i>
-                    Pendiente
+                <stp-badge [variant]="statusConfig[currentStatus()].variant" badgeStyle="solid" size="sm">
+                    <i stp-icon [name]="statusConfig[currentStatus()].icon" class="icon--xs"></i>
+                    {{ statusConfig[currentStatus()].label }}
                 </stp-badge>
-                }
             </div>
             <p class="new-order-drawer__subtitle">
                 {{ isEditMode() 
@@ -28,6 +26,44 @@
             <i stp-icon name="x" style="font-size: 1.125rem"></i>
         </button>
     </header>
+
+    <!-- ── Status Change Bar (Solo en modo edición) ────────────── -->
+    @if (isEditMode()) {
+    <section class="new-order-drawer__status-bar" aria-label="Cambiar estado de la orden">
+        <span class="new-order-drawer__status-label">
+            <i stp-icon name="arrow-counter-clockwise" class="icon--xs"></i>
+            Cambiar estado de la orden:
+        </span>
+
+        <div class="new-order-drawer__status-actions">
+            <!-- Botón Confirmar Orden -->
+            <stp-button
+                variant="primary"
+                btnStyle="solid"
+                size="sm"
+                radius="md"
+                [disabled]="!canSubmit() || isSubmitting()"
+                [loading]="isSubmitting() && pendingActionStatus() === 'confirmado'"
+                (click)="confirmOrder()">
+                <i stp-icon name="check-circle" class="icon--xs"></i>
+                <span>Confirmar orden</span>
+            </stp-button>
+
+            <!-- Botón Cancelar Orden -->
+            <stp-button
+                variant="danger"
+                btnStyle="outlined"
+                size="sm"
+                radius="md"
+                [disabled]="isSubmitting()"
+                [loading]="isSubmitting() && pendingActionStatus() === 'cancelado'"
+                (click)="cancelOrder()">
+                <i stp-icon name="x-circle" class="icon--xs"></i>
+                <span>Cancelar orden</span>
+            </stp-button>
+        </div>
+    </section>
+    }
 
     <div class="new-order-drawer__body">
 
@@ -262,61 +298,31 @@
 
     <!-- Footer Actions -->
     <footer class="new-order-drawer__footer">
-        @if (isEditMode()) {
-        <!-- Edit mode: Cancel order on left, save / confirm on right -->
         <div class="new-order-drawer__footer-left">
-            <stp-button variant="danger" btnStyle="outlined" size="md" radius="md"
-                [loading]="isSubmitting()"
-                (click)="cancelOrder()">
-                <i stp-icon name="x-circle" class="icon--xs"></i>
-                Cancelar orden
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
+                {{ isEditMode() ? 'Cerrar' : 'Cancelar' }}
             </stp-button>
         </div>
 
         <div class="new-order-drawer__footer-right">
-            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
-                Cerrar
-            </stp-button>
-            <stp-button variant="surface" btnStyle="solid" size="md" radius="md"
+            @if (isEditMode()) {
+            <stp-button variant="primary" btnStyle="solid" size="md" radius="md"
                 [disabled]="!canSubmit()"
-                [loading]="isSubmitting()"
-                (click)="saveAsPending()">
+                [loading]="isSubmitting() && pendingActionStatus() === 'pendiente'"
+                (click)="saveChanges()">
                 <i stp-icon name="check" class="icon--xs"></i>
                 Guardar cambios
             </stp-button>
+            } @else {
             <stp-button variant="primary" btnStyle="solid" size="md" radius="md"
                 [disabled]="!canSubmit()"
-                [loading]="isSubmitting()"
-                (click)="confirmOrder()">
-                <i stp-icon name="check-circle" class="icon--xs"></i>
-                Confirmar orden
+                [loading]="isSubmitting() && pendingActionStatus() === 'pendiente'"
+                (click)="createOrder()">
+                <i stp-icon name="plus" class="icon--xs"></i>
+                Crear orden
             </stp-button>
+            }
         </div>
-        } @else {
-        <!-- Create mode: Close on left, save pending / confirm on right -->
-        <div class="new-order-drawer__footer-left">
-            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
-                Cancelar
-            </stp-button>
-        </div>
-
-        <div class="new-order-drawer__footer-right">
-            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md"
-                [disabled]="!canSubmit()"
-                [loading]="isSubmitting()"
-                (click)="saveAsPending()">
-                <i stp-icon name="clock" class="icon--xs"></i>
-                Guardar como pendiente
-            </stp-button>
-            <stp-button variant="primary" btnStyle="solid" size="md" radius="md"
-                [disabled]="!canSubmit()"
-                [loading]="isSubmitting()"
-                (click)="confirmOrder()">
-                <i stp-icon name="check-circle" class="icon--xs"></i>
-                Confirmar orden
-            </stp-button>
-        </div>
-        }
     </footer>
 
 </div>

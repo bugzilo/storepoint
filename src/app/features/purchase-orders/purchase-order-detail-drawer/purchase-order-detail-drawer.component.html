@@ -56,7 +56,7 @@
                 } @else if (isCompleted()) {
                 <strong class="order-drawer__banner-title">Orden Completada</strong>
                 <p class="order-drawer__banner-desc">
-                    La recepción de mercadería y el cierre administrativo de esta orden fueron completados.
+                    El ingreso de mercadería a inventario y el cierre de esta orden fueron completados.
                 </p>
                 } @else if (isCancelled()) {
                 <strong class="order-drawer__banner-title">Orden Cancelada</strong>
@@ -201,7 +201,7 @@
             </stp-button>
         </div>
         } @else if (isConfirmed()) {
-        <!-- CONFIRMADO: Read-only, Download PDF enabled, can mark as completed -->
+        <!-- CONFIRMADO: Read-only, Download PDF enabled, status transition managed from inventory -->
         <div class="order-drawer__footer-left">
             <stp-button variant="primary" btnStyle="outlined" size="md" radius="md" (click)="onDownloadPdfClick()">
                 <i stp-icon name="download-simple" class="icon--xs"></i>
@@ -210,14 +210,8 @@
         </div>
 
         <div class="order-drawer__footer-right">
-            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
+            <stp-button variant="surface" btnStyle="solid" size="md" radius="md" (click)="close()">
                 Cerrar
-            </stp-button>
-            <stp-button variant="success" btnStyle="solid" size="md" radius="md"
-                [loading]="isProcessing()"
-                (click)="onCompleteClick()">
-                <i stp-icon name="check" class="icon--xs"></i>
-                Marcar como completada
             </stp-button>
         </div>
         } @else if (isCompleted()) {
