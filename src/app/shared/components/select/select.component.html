@@ -9,11 +9,13 @@
     (change)="onSelectChange($event)"
     [attr.aria-labelledby]="label() ? id() + '-label' : null"
   >
-    @if (placeholder() && !value()) {
-      <option value="" disabled selected>{{ placeholder() }}</option>
+    @if (!hasValue()) {
+      <option value="" disabled selected>
+        {{ (floated() || !label()) ? effectivePlaceholder() : '' }}
+      </option>
     }
     @for (opt of options(); track opt.value) {
-      <option [value]="opt.value" [disabled]="opt.disabled ?? false">
+      <option [value]="opt.value" [selected]="value() === opt.value" [disabled]="opt.disabled ?? false">
         {{ opt.label }}
       </option>
     }
