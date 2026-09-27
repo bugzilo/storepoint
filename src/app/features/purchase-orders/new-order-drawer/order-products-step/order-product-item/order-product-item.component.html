@@ -1,0 +1,84 @@
+<stp-card padding="sm" radius="md" class="order-product-card">
+  <div class="order-product-item">
+    <!-- Main / Top: Thumbnail + Info (Title, Unit/Price, Tag) + Mobile Delete -->
+    <div class="order-product-item__main">
+      <div class="order-product-item__thumb">
+        @if (item().product.imageUrl) {
+          <img [src]="item().product.imageUrl" [alt]="item().product.name" class="order-product-item__img" />
+        } @else {
+          <div class="order-product-item__placeholder">
+            <i stp-icon name="package" class="icon--xs text-secondary"></i>
+          </div>
+        }
+      </div>
+
+      <div class="order-product-item__info">
+        <div class="order-product-item__header-row">
+          <div class="order-product-item__title-row">
+            <strong class="order-product-item__name" [title]="item().product.name">
+              {{ item().product.name }}
+            </strong>
+            <button
+              type="button"
+              class="order-product-item__edit-btn"
+              title="Editar producto en formulario"
+              (click)="edit.emit(item().product)">
+              <i stp-icon name="pencil-simple" class="icon--xs"></i>
+            </button>
+          </div>
+
+          <!-- Mobile Remove Button in header row -->
+          <button
+            type="button"
+            class="order-product-item__remove-btn order-product-item__remove-btn--mobile"
+            aria-label="Eliminar producto"
+            title="Eliminar de la orden"
+            (click)="remove.emit(item().product.id)">
+            <i stp-icon name="trash" class="icon--sm text-error"></i>
+          </button>
+        </div>
+
+        <div class="order-product-item__meta">
+          <span class="order-product-item__unit text-secondary">
+            {{ item().product.unit }} · S/ {{ item().unitCost | number:'1.2-2' }} c/u
+          </span>
+          <stp-tag variant="surface" size="sm">
+            {{ getProductCategoryIcon(item().product.category) }} {{ getProductCategoryLabel(item().product.category) }}
+          </stp-tag>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls: Stepper + Subtotal + Desktop Delete -->
+    <div class="order-product-item__controls">
+      <div class="order-product-item__numeric-group">
+        <span class="order-product-item__ctrl-label">Cant:</span>
+        <div class="order-product-item__stepper">
+          <stp-input-numeric
+            size="sm"
+            radius="md"
+            [min]="1"
+            [value]="item().quantity"
+            (valueChange)="onQuantityChange($event)" />
+        </div>
+      </div>
+
+      <div class="order-product-item__subtotal">
+        <span class="order-product-item__subtotal-label">Subtotal:</span>
+        <strong class="order-product-item__subtotal-val">
+          S/ {{ subtotal() | number:'1.2-2' }}
+        </strong>
+      </div>
+
+      <!-- Desktop Remove Button -->
+      <button
+        type="button"
+        class="order-product-item__remove-btn order-product-item__remove-btn--desktop"
+        aria-label="Eliminar producto"
+        title="Eliminar de la orden"
+        (click)="remove.emit(item().product.id)">
+        <i stp-icon name="trash" class="icon--sm text-error"></i>
+      </button>
+    </div>
+  </div>
+</stp-card>

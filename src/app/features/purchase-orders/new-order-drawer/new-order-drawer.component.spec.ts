@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { NewOrderDrawerComponent } from './new-order-drawer.component';
+import { AddProductStepComponent } from './add-product-step/add-product-step.component';
 import { PurchaseOrder } from '../purchase-orders.data';
 
 beforeAll(() => {
@@ -155,24 +157,47 @@ describe('NewOrderDrawerComponent', () => {
       createFixture.detectChanges();
     });
 
-    it('should be in creation mode with default pendiente status', () => {
+    it('should initialize empty in creation mode (no selected supplier, empty payment terms, empty date, empty items)', () => {
       expect(createComponent['isEditMode']()).toBe(false);
       expect(createComponent['currentStatus']()).toBe('pendiente');
+      expect(createComponent['selectedSupplierId']()).toBeUndefined();
+      expect(createComponent['selectedSupplier']()).toBeNull();
+      expect(createComponent['paymentTerms']()).toBe('');
+      expect(createComponent['expectedDeliveryDate']()).toBe('');
+      expect(createComponent['itemsDraft']().length).toBe(0);
+      expect(createComponent['canSubmit']()).toBe(false);
     });
 
-    it('should NOT show the status change bar in creation mode', () => {
-      const compiled = createFixture.nativeElement as HTMLElement;
-      const statusBar = compiled.querySelector('.new-order-drawer__status-bar');
-      expect(statusBar).toBeNull();
-    });
+    it('should transition to "success" step when createOrder is called and dismiss with savedOrder when done is called', () => {
+      // In creation mode, user selects a supplier and adds products
+      createComponent['selectedSupplierId'].set(1);
+      createComponent['itemsDraft'].set([
+        {
+          product: createComponent['availableProducts'][0],
+          quantity: 2,
+          unitCost: 24.0,
+        },
+      ]);
+      createFixture.detectChanges();
+      expect(createComponent['canSubmit']()).toBe(true);
 
-    it('should submit with status "pendiente" and action "created" when createOrder is called', () => {
       vi.useFakeTimers();
       createComponent['createOrder']();
       expect(createComponent['isSubmitting']()).toBe(true);
       expect(createComponent['currentStatus']()).toBe('pendiente');
 
       vi.advanceTimersByTime(350);
+      expect(createComponent['isSubmitting']()).toBe(false);
+      expect(createComponent['currentStep']()).toBe('success');
+      expect(mockSheetRef.dismiss).not.toHaveBeenCalled();
+
+      createFixture.detectChanges();
+      const compiled = createFixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('.new-order-drawer__success')).toBeTruthy();
+      expect(compiled.querySelector('.new-order-drawer__success-title')?.textContent).toContain('¡Operación registrada!');
+      expect(compiled.querySelector('.new-order-drawer__success-sub')?.textContent).toContain('La orden de compra fue registrada con éxito.');
+
+      createComponent['done']();
       expect(mockSheetRef.dismiss).toHaveBeenCalledWith(
         expect.objectContaining({
           action: 'created',
@@ -222,7 +247,7 @@ describe('NewOrderDrawerComponent', () => {
       expect(added?.unitCost).toBe(15.0);
     });
 
-    it('should display the selected supplier informatively in add-product step without supplier search dropdown', () => {
+    it('should focus cleanly on product selection without repeating supplier info card', () => {
       createComponent['openAddProduct']();
       createFixture.detectChanges();
 
@@ -230,14 +255,30 @@ describe('NewOrderDrawerComponent', () => {
       const addStep = compiled.querySelector('stp-add-product-step');
       expect(addStep).toBeTruthy();
 
-      // Informative supplier card is rendered
+      // Redundant supplier card is removed
       const supplierCard = addStep?.querySelector('.supplier-info-card');
-      expect(supplierCard).toBeTruthy();
-      expect(supplierCard?.textContent).toContain(createComponent['selectedSupplier']()?.name);
+      expect(supplierCard).toBeNull();
 
-      // Only 1 search-dropdown should exist in add-step (for products, none for suppliers)
+      // Only 1 search-dropdown exists in add-step (for products)
       const searchDropdowns = addStep?.querySelectorAll('stp-search-dropdown');
       expect(searchDropdowns?.length).toBe(1);
+
+      // Back button in footer has "Volver" text
+      const footerBtn = addStep?.querySelector('.add-step__footer-left stp-button');
+      expect(footerBtn?.textContent).toContain('Volver');
+    });
+
+    it('should default quantity to 1 (not 10) when selecting a product in add-product step', () => {
+      createComponent['openAddProduct']();
+      createFixture.detectChanges();
+
+      const addStepDebug = createFixture.debugElement.query(By.directive(AddProductStepComponent));
+      expect(addStepDebug).toBeTruthy();
+      const addStepComp = addStepDebug.componentInstance as AddProductStepComponent;
+
+      const testProduct = createComponent['availableProducts'][3];
+      addStepComp['onProductSelect'](testProduct);
+      expect(addStepComp['quantity']()).toBe(1);
     });
   });
 });

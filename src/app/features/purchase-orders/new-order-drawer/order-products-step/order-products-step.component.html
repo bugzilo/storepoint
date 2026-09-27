@@ -60,6 +60,7 @@
       <section class="order-step__section">
         <stp-select
           label="Condición de pago"
+          placeholder="Seleccionar condición"
           size="md"
           [options]="paymentTermOptions"
           [value]="paymentTerms()"
@@ -102,71 +103,11 @@
       <!-- Items List -->
       <div class="order-step__items-list">
         @for (item of items(); track item.product.id) {
-          <stp-card padding="sm" radius="md">
-            <div class="order-item">
-              <!-- Thumbnail -->
-              <div class="order-item__thumb">
-                @if (item.product.imageUrl) {
-                  <img [src]="item.product.imageUrl" [alt]="item.product.name" class="order-item__img" />
-                } @else {
-                  <div class="order-item__placeholder">
-                    <i stp-icon name="package" class="icon--xs text-secondary"></i>
-                  </div>
-                }
-              </div>
-
-              <!-- Product Info -->
-              <div class="order-item__info">
-                <div class="order-item__title-row">
-                  <strong class="order-item__name">{{ item.product.name }}</strong>
-                  <button
-                    type="button"
-                    class="order-item__edit-btn"
-                    title="Editar producto en formulario"
-                    (click)="onEdit(item.product)">
-                    <i stp-icon name="pencil-simple" class="icon--xs"></i>
-                  </button>
-                </div>
-                <div class="order-item__meta">
-                  <span class="order-item__unit text-secondary">
-                    {{ item.product.unit }} · S/ {{ item.unitCost | number:'1.2-2' }} c/u
-                  </span>
-                  <stp-tag variant="surface" size="sm">
-                    {{ getProductCategoryIcon(item.product.category) }} {{ getProductCategoryLabel(item.product.category) }}
-                  </stp-tag>
-                </div>
-              </div>
-
-              <!-- Stepper, Subtotal and Remove -->
-              <div class="order-item__controls">
-                <div class="order-item__numeric-group">
-                  <span class="order-item__ctrl-label">Cant:</span>
-                  <stp-input-numeric
-                    size="sm"
-                    radius="md"
-                    [min]="1"
-                    [value]="item.quantity"
-                    (valueChange)="onUpdateQty(item.product.id, $event)" />
-                </div>
-
-                <div class="order-item__subtotal">
-                  <span class="order-item__subtotal-label">Subtotal:</span>
-                  <strong class="order-item__subtotal-val">
-                    S/ {{ (item.quantity * item.unitCost) | number:'1.2-2' }}
-                  </strong>
-                </div>
-
-                <button
-                  type="button"
-                  class="order-item__remove-btn"
-                  aria-label="Eliminar producto"
-                  title="Eliminar de la orden"
-                  (click)="onRemove(item.product.id)">
-                  <i stp-icon name="trash" class="icon--sm text-error"></i>
-                </button>
-              </div>
-            </div>
-          </stp-card>
+          <stp-order-product-item
+            [item]="item"
+            (edit)="onEdit($event)"
+            (updateQuantity)="onUpdateQty(item.product.id, $event)"
+            (remove)="onRemove(item.product.id)" />
         }
 
         <!-- Empty state when no products -->
@@ -232,19 +173,6 @@
     </div>
 
     <div class="order-step__footer-right">
-      <!-- Quick add product button also in footer if items exist -->
-      @if (items().length > 0) {
-        <stp-button
-          variant="surface"
-          btnStyle="outlined"
-          size="md"
-          radius="md"
-          (click)="addProduct.emit()">
-          <i stp-icon name="plus" class="icon--xs"></i>
-          Agregar producto
-        </stp-button>
-      }
-
       @if (isEditMode()) {
         <stp-button
           variant="primary"

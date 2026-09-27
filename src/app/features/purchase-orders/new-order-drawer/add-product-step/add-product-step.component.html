@@ -1,69 +1,9 @@
 <div class="add-step">
 
-  <!-- ── 1. Top Subheader / Back navigation ────────────────────── -->
-  <div class="add-step__sub-header">
-    <button
-      type="button"
-      class="add-step__back-btn"
-      aria-label="Volver a la lista de productos"
-      (click)="back.emit()">
-      <i stp-icon name="arrow-left" class="icon--sm"></i>
-      <span>Volver a la orden</span>
-    </button>
-    <span class="add-step__sub-badge">
-      @if (isProductAlreadyInOrder()) {
-        <stp-badge variant="info" badgeStyle="light" size="sm">Ya en la orden</stp-badge>
-      } @else {
-        <stp-badge variant="primary" badgeStyle="light" size="sm">Nuevo producto</stp-badge>
-      }
-    </span>
-  </div>
-
-  <!-- ── 2. Form Body ───────────────────────────────────────────── -->
+  <!-- ── Form Body ───────────────────────────────────────────── -->
   <div class="add-step__body">
 
-    <!-- Section 1: Proveedor de la orden (Solo informativo) -->
-    <section class="add-step__section" aria-label="Proveedor seleccionado">
-      <div class="add-step__field-header">
-        <label class="add-step__label font-semibold">
-          <i stp-icon name="storefront" class="icon--xs text-primary-c"></i>
-          Proveedor
-        </label>
-        <span class="add-step__hint text-secondary">Seleccionado en el paso anterior</span>
-      </div>
-
-      @if (currentSupplier(); as sup) {
-        <div class="supplier-info-card">
-          <div class="supplier-info-card__icon">
-            <span>{{ getSupplierCategoryIcon(sup.category) }}</span>
-          </div>
-          <div class="supplier-info-card__body">
-            <div class="supplier-info-card__top">
-              <strong class="supplier-info-card__name">{{ sup.name }}</strong>
-              <stp-tag variant="surface" size="sm">
-                {{ getSupplierCategoryLabel(sup.category) }}
-              </stp-tag>
-            </div>
-            <div class="supplier-info-card__meta">
-              <span>RUC: {{ sup.ruc }}</span>
-              @if (sup.phone) {
-                <span>· Tel: {{ sup.phone }}</span>
-              }
-              @if (sup.email) {
-                <span>· {{ sup.email }}</span>
-              }
-            </div>
-          </div>
-        </div>
-      } @else {
-        <stp-alert
-          variant="warning"
-          description="No se ha seleccionado un proveedor en el paso anterior.">
-        </stp-alert>
-      }
-    </section>
-
-    <!-- Section 2: Selector de Producto con stp-search-dropdown -->
+    <!-- Selector de Producto con stp-search-dropdown -->
     <section class="add-step__section" aria-label="Selección de producto">
       <div class="add-step__field-header">
         <label class="add-step__label font-semibold">
@@ -82,14 +22,15 @@
         descriptionKey="category"
         [maxResults]="15"
         [(value)]="productQuery"
-        (selected)="onProductSelect($event)">
+        (selected)="onProductSelect($event)"
+        (cleared)="resetProduct()">
         <ng-template #itemTemplate let-prod let-active="isActive">
           <div class="prod-option" [class.prod-option--active]="active">
             <div class="prod-option__thumb">
               @if (prod.imageUrl) {
-                <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-option__img" />
+                <img [src]="prod.imageUrl" alt="" class="prod-option__img" />
               } @else {
-                <i stp-icon name="package" class="icon--xs text-secondary"></i>
+                <span class="prod-option__emoji">{{ getProductCategoryIcon(prod.category) }}</span>
               }
             </div>
             <div class="prod-option__info">
@@ -109,122 +50,141 @@
       </stp-search-dropdown>
     </section>
 
-    <!-- Section 3: Selected Product Customization Box -->
+    <!-- Selected Product Configuration Card -->
     @if (selectedProduct(); as prod) {
-      <section class="add-step__preview" aria-label="Configuración de cantidades y costo">
-        <stp-card padding="md" radius="lg">
-          <div class="prod-preview">
-            <!-- Header -->
-            <div class="prod-preview__header">
-              <div class="prod-preview__title-row">
-                <i stp-icon name="sliders" class="icon--xs text-primary-c"></i>
-                <strong class="prod-preview__title">Detalles del producto seleccionado</strong>
-              </div>
-              <button
-                type="button"
-                class="prod-preview__clear-btn"
-                title="Quitar producto seleccionado"
-                (click)="resetProduct()">
-                <i stp-icon name="x" class="icon--xs"></i>
-              </button>
+      <section class="add-step__config" aria-label="Configuración de cantidades y costo">
+        <div class="prod-card">
+          <!-- 1. Product Summary Strip -->
+          <div class="prod-card__header">
+            <div class="prod-card__thumb">
+              @if (prod.imageUrl && !imgFailed()) {
+                <img
+                  [src]="prod.imageUrl"
+                  alt=""
+                  class="prod-card__img"
+                  (error)="imgFailed.set(true)" />
+              } @else {
+                <span class="prod-card__emoji" aria-hidden="true">
+                  {{ getProductCategoryIcon(prod.category) }}
+                </span>
+              }
             </div>
 
-            <!-- Body Details -->
-            <div class="prod-preview__body">
-              <div class="prod-preview__media">
-                @if (prod.imageUrl) {
-                  <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-preview__img" />
-                } @else {
-                  <div class="prod-preview__placeholder">
-                    <i stp-icon name="package" class="icon--md text-secondary"></i>
-                  </div>
+            <div class="prod-card__details">
+              <div class="prod-card__title-row">
+                <h4 class="prod-card__name" [title]="prod.name">{{ prod.name }}</h4>
+                @if (isProductAlreadyInOrder()) {
+                  <stp-badge variant="info" badgeStyle="light" size="sm">
+                    Ya en la orden
+                  </stp-badge>
                 }
               </div>
 
-              <div class="prod-preview__info">
-                <div class="prod-preview__name-row">
-                  <h4 class="prod-preview__name">{{ prod.name }}</h4>
-                  <stp-tag variant="surface" size="sm">
-                    {{ getProductCategoryIcon(prod.category) }} {{ getProductCategoryLabel(prod.category) }}
-                  </stp-tag>
-                </div>
+              <div class="prod-card__badges">
+                <stp-tag variant="surface" size="sm">
+                  {{ getProductCategoryIcon(prod.category) }} {{ getProductCategoryLabel(prod.category) }}
+                </stp-tag>
 
-                <div class="prod-preview__meta-row">
-                  <span
-                    class="prod-preview__stock"
-                    [class.prod-preview__stock--low]="prod.stock > 0 && prod.stock <= 10"
-                    [class.prod-preview__stock--out]="prod.stock === 0">
-                    <i stp-icon name="archive" class="icon--xs"></i>
-                    Stock en tienda: <strong>{{ prod.stock }} {{ prod.unit }}(s)</strong>
-                  </span>
-                  <span class="prod-preview__price text-secondary">
-                    Precio regular venta: S/ {{ prod.price | number:'1.2-2' }}
-                  </span>
-                </div>
+                <span
+                  class="prod-card__stock-tag"
+                  [class.prod-card__stock-tag--low]="prod.stock > 0 && prod.stock <= 10"
+                  [class.prod-card__stock-tag--out]="prod.stock === 0">
+                  <i stp-icon name="archive" class="icon--xs"></i>
+                  Stock: {{ prod.stock }} {{ prod.unit }}(s)
+                </span>
+
+                <span class="prod-card__price-ref">
+                  Venta: S/ {{ prod.price | number:'1.2-2' }}
+                </span>
               </div>
             </div>
 
-            <!-- Controls: Quantity & Unit Cost -->
-            <div class="prod-preview__controls-panel">
-              <!-- Quantity -->
-              <div class="prod-preview__field">
-                <label class="prod-preview__field-label" for="add-product-qty">
+            <button
+              type="button"
+              class="prod-card__clear-btn"
+              title="Cambiar producto"
+              aria-label="Cambiar o quitar producto"
+              (click)="resetProduct()">
+              <i stp-icon name="x" class="icon--xs"></i>
+            </button>
+          </div>
+
+          <!-- 2. Inputs & Subtotal Grid -->
+          <div class="prod-card__controls">
+            <!-- Columna 1: Cantidad -->
+            <div class="prod-card__field">
+              <div class="prod-card__field-top">
+                <label class="prod-card__field-label" for="add-product-qty">
                   Cantidad a solicitar *
                 </label>
-                <stp-input-numeric
-                  id="add-product-qty"
-                  size="md"
-                  radius="md"
-                  [min]="1"
-                  [value]="quantity()"
-                  (valueChange)="onQuantityChange($event)" />
+                <span class="prod-card__field-hint">
+                  {{ prod.unit || 'unidad' }}(s)
+                </span>
               </div>
+              <stp-input-numeric
+                id="add-product-qty"
+                size="md"
+                radius="md"
+                [min]="1"
+                [value]="quantity()"
+                (valueChange)="onQuantityChange($event)" />
+            </div>
 
-              <!-- Unit Cost -->
-              <div class="prod-preview__field">
-                <label class="prod-preview__field-label" for="add-product-cost">
-                  Costo compra unitario (S/) *
+            <!-- Columna 2: Costo Unitario -->
+            <div class="prod-card__field">
+              <div class="prod-card__field-top">
+                <label class="prod-card__field-label" for="add-product-cost">
+                  Costo unitario *
                 </label>
-                <div class="prod-preview__cost-input-wrap">
-                  <span class="prod-preview__currency">S/</span>
-                  <input
-                    id="add-product-cost"
-                    type="number"
-                    step="0.10"
-                    min="0"
-                    class="prod-preview__cost-input"
-                    [value]="unitCost()"
-                    (input)="onCostInputChange($event)" />
-                </div>
+                <span class="prod-card__field-hint">
+                  Sugerido: S/ {{ (prod.price * 0.8) | number:'1.2-2' }}
+                </span>
               </div>
-
-              <!-- Subtotal Calculation -->
-              <div class="prod-preview__subtotal-box">
-                <span class="prod-preview__subtotal-label">Subtotal estimado:</span>
-                <strong class="prod-preview__subtotal-val">
-                  S/ {{ subtotal() | number:'1.2-2' }}
-                </strong>
+              <div class="prod-card__cost-input-box">
+                <span class="prod-card__currency-tag">S/</span>
+                <input
+                  id="add-product-cost"
+                  type="number"
+                  step="0.10"
+                  min="0"
+                  placeholder="0.00"
+                  class="prod-card__cost-input"
+                  [value]="unitCost()"
+                  (input)="onCostInputChange($event)" />
               </div>
             </div>
+
+            <!-- Columna 3 (Desktop) / Full Width Strip (Mobile): Subtotal Banner -->
+            <div class="prod-card__subtotal-banner">
+              <div class="prod-card__subtotal-info">
+                <span class="prod-card__subtotal-label">Subtotal estimado</span>
+                <span class="prod-card__subtotal-breakdown">
+                  {{ quantity() }} × S/ {{ unitCost() | number:'1.2-2' }}
+                </span>
+              </div>
+              <strong class="prod-card__subtotal-val">
+                S/ {{ subtotal() | number:'1.2-2' }}
+              </strong>
+            </div>
           </div>
-        </stp-card>
+        </div>
       </section>
     } @else {
-      <!-- Placeholder when no product chosen yet -->
-      <div class="add-step__choose-prompt">
-        <div class="add-step__prompt-icon">
+      <!-- Clean Empty State Prompt -->
+      <div class="add-step__empty-prompt">
+        <div class="add-step__empty-icon">
           <i stp-icon name="magnifying-glass" class="icon--lg text-primary-c"></i>
         </div>
-        <strong class="add-step__prompt-title">Busca y selecciona un producto</strong>
-        <p class="add-step__prompt-desc">
-          Escribe en el buscador superior para elegir el producto. Podrás definir la cantidad y el costo de compra unitario antes de añadirlo a la orden.
+        <strong class="add-step__empty-title">Busca y selecciona un producto</strong>
+        <p class="add-step__empty-desc">
+          Escribe el nombre o categoría en el buscador superior para definir la cantidad y el costo de compra unitario.
         </p>
       </div>
     }
 
   </div><!-- /add-step__body -->
 
-  <!-- ── 3. Footer Actions ──────────────────────────────────────── -->
+  <!-- ── Footer Actions ──────────────────────────────────────── -->
   <footer class="add-step__footer">
     <div class="add-step__footer-left">
       <stp-button
@@ -234,7 +194,7 @@
         radius="md"
         (click)="back.emit()">
         <i stp-icon name="arrow-left" class="icon--xs"></i>
-        <span>Volver a la orden</span>
+        <span>Volver</span>
       </stp-button>
     </div>
 

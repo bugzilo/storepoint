@@ -11,17 +11,10 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 import { InputNumericComponent } from '../../../../shared/components/input-numeric/input-numeric.component';
 import { TagComponent } from '../../../../shared/components/tag/tag.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { SearchDropdownComponent } from '../../../../shared/components/search-dropdown/search-dropdown.component';
-import { AlertComponent } from '../../../../shared/components/alert/alert.component';
-import {
-  Supplier,
-  SUPPLIER_CATEGORY_ICONS,
-  SUPPLIER_CATEGORY_LABELS,
-} from '../../../suppliers/suppliers.data';
 import {
   CATEGORY_ICONS,
   CATEGORY_LABELS,
@@ -38,12 +31,10 @@ import { OrderItemDraft } from '../new-order-drawer.component';
     FormsModule,
     ButtonComponent,
     IconComponent,
-    CardComponent,
     InputNumericComponent,
     TagComponent,
     BadgeComponent,
     SearchDropdownComponent,
-    AlertComponent,
   ],
   templateUrl: './add-product-step.component.html',
   styleUrl: './add-product-step.component.scss',
@@ -51,33 +42,17 @@ import { OrderItemDraft } from '../new-order-drawer.component';
 })
 export class AddProductStepComponent {
   // ── Inputs ────────────────────────────────────────────────────
-  readonly suppliers = input<Supplier[]>([]);
-  readonly selectedSupplierId = input<string | number | undefined>(undefined);
-  readonly selectedSupplier = input<Supplier | null>(null);
   readonly products = input.required<Product[]>();
   readonly existingDrafts = input<OrderItemDraft[]>([]);
   readonly initialProduct = input<Product | null>(null);
 
   // ── Outputs ───────────────────────────────────────────────────
-  readonly supplierSelected = output<Supplier>();
   readonly productAdded = output<OrderItemDraft>();
   readonly back = output<void>();
 
   // ── Helpers & Labels ──────────────────────────────────────────
   protected readonly categoryLabels = CATEGORY_LABELS;
   protected readonly categoryIcons = CATEGORY_ICONS;
-  protected readonly supplierCategoryLabels = SUPPLIER_CATEGORY_LABELS;
-  protected readonly supplierCategoryIcons = SUPPLIER_CATEGORY_ICONS;
-
-  // ── Supplier State ────────────────────────────────────────────
-  protected readonly currentSupplier = computed<Supplier | null>(() => {
-    if (this.selectedSupplier()) {
-      return this.selectedSupplier();
-    }
-    const id = Number(this.selectedSupplierId());
-    if (!id) return this.suppliers()[0] ?? null;
-    return this.suppliers().find(s => s.id === id) ?? this.suppliers()[0] ?? null;
-  });
 
   // ── Product State ─────────────────────────────────────────────
   protected readonly selectedProduct = linkedSignal<Product | null>(() => {
@@ -90,9 +65,9 @@ export class AddProductStepComponent {
 
   protected readonly quantity = linkedSignal<number>(() => {
     const prod = this.initialProduct();
-    if (!prod) return 10;
+    if (!prod) return 1;
     const existing = this.existingDrafts().find(d => d.product.id === prod.id);
-    return existing?.quantity ?? 10;
+    return existing?.quantity ?? 1;
   });
 
   protected readonly unitCost = linkedSignal<number>(() => {
@@ -119,8 +94,12 @@ export class AddProductStepComponent {
     return !!this.selectedProduct() && this.quantity() >= 1 && this.unitCost() >= 0;
   });
 
+  // ── Image Fallback State ─────────────────────────────────────
+  protected readonly imgFailed = signal<boolean>(false);
+
   // ── Handlers ──────────────────────────────────────────────────
   protected onProductSelect(prod: Product): void {
+    this.imgFailed.set(false);
     this.selectedProduct.set(prod);
     this.productQuery.set(prod.name);
 
@@ -129,7 +108,7 @@ export class AddProductStepComponent {
       this.quantity.set(existing.quantity);
       this.unitCost.set(existing.unitCost);
     } else {
-      this.quantity.set(10);
+      this.quantity.set(1);
       this.unitCost.set(Number((prod.price * 0.8).toFixed(2)));
     }
   }
@@ -156,18 +135,11 @@ export class AddProductStepComponent {
   }
 
   protected resetProduct(): void {
+    this.imgFailed.set(false);
     this.selectedProduct.set(null);
     this.productQuery.set('');
-    this.quantity.set(10);
+    this.quantity.set(1);
     this.unitCost.set(0);
-  }
-
-  protected getSupplierCategoryIcon(cat: unknown): string {
-    return (this.supplierCategoryIcons as Record<string, string>)[String(cat)] ?? '📦';
-  }
-
-  protected getSupplierCategoryLabel(cat: unknown): string {
-    return (this.supplierCategoryLabels as Record<string, string>)[String(cat)] ?? 'General';
   }
 
   protected getProductCategoryIcon(cat: unknown): string {

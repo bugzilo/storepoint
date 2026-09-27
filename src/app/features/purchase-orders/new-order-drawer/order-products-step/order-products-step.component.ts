@@ -12,7 +12,6 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { InputNumericComponent } from '../../../../shared/components/input-numeric/input-numeric.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { TagComponent } from '../../../../shared/components/tag/tag.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
@@ -22,6 +21,8 @@ import { Supplier, SUPPLIER_CATEGORY_ICONS, SUPPLIER_CATEGORY_LABELS } from '../
 import { CATEGORY_ICONS, CATEGORY_LABELS, Product } from '../../../sale/sale.data';
 import { OrderItemDraft } from '../new-order-drawer.component';
 import { PurchaseOrderStatus } from '../../purchase-orders.data';
+
+import { OrderProductItemComponent } from './order-product-item/order-product-item.component';
 
 @Component({
   selector: 'stp-order-products-step',
@@ -34,12 +35,12 @@ import { PurchaseOrderStatus } from '../../purchase-orders.data';
     IconComponent,
     CardComponent,
     InputComponent,
-    InputNumericComponent,
     SelectComponent,
     TagComponent,
     BadgeComponent,
     SearchDropdownComponent,
     AlertComponent,
+    OrderProductItemComponent,
   ],
   templateUrl: './order-products-step.component.html',
   styleUrl: './order-products-step.component.scss',
@@ -49,8 +50,8 @@ export class OrderProductsStepComponent {
   // ── Inputs ────────────────────────────────────────────────────
   readonly items = input.required<OrderItemDraft[]>();
   readonly suppliers = input.required<Supplier[]>();
-  readonly selectedSupplierId = input.required<string | number>();
-  readonly paymentTerms = input<string | number>('Contado');
+  readonly selectedSupplierId = input<string | number | undefined>(undefined);
+  readonly paymentTerms = input<string | number>('');
   readonly expectedDeliveryDate = input<string>('');
   readonly notes = input<string>('');
   readonly totalAmount = input.required<number>();
@@ -88,7 +89,8 @@ export class OrderProductsStepComponent {
 
   protected readonly selectedSupplier = computed(() => {
     const id = Number(this.selectedSupplierId());
-    return this.suppliers().find(s => s.id === id) ?? this.suppliers()[0];
+    if (!id) return null;
+    return this.suppliers().find(s => s.id === id) ?? null;
   });
 
   protected readonly supplierQuery = linkedSignal<string>(() => {
@@ -107,6 +109,7 @@ export class OrderProductsStepComponent {
 
   protected onSupplierCleared(): void {
     this.supplierQuery.set('');
+    this.supplierChange.emit(0);
   }
 
   protected onPaymentTermsSelect(value: string | number): void {

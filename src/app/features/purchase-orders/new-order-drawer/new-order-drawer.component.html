@@ -5,101 +5,114 @@
     <!-- Drag handle -->
     <div class="new-order-drawer__handle" aria-hidden="true"></div>
 
-    <!-- Header -->
-    <header class="new-order-drawer__header">
-        <div>
-            <div class="new-order-drawer__title-row">
-                <h2 class="new-order-drawer__title">
-                    {{ isEditMode() ? 'Editar Orden ' + existingOrder?.code : 'Nueva Orden de Compra' }}
-                </h2>
-                <stp-badge [variant]="statusConfig[currentStatus()].variant" badgeStyle="solid" size="sm">
-                    <i stp-icon [name]="statusConfig[currentStatus()].icon" class="icon--xs"></i>
-                    {{ statusConfig[currentStatus()].label }}
-                </stp-badge>
+    @if (currentStep() === 'success') {
+        <div class="new-order-drawer__success">
+            <div class="new-order-drawer__success-icon">
+                <i stp-icon name="check-circle" [autofill]="false" style="font-size: 4rem"></i>
             </div>
-            <p class="new-order-drawer__subtitle">
-                {{ isEditMode() 
-                    ? 'Modifica los productos o detalles antes de confirmarla. Una vez confirmada no podrá editarse.' 
-                    : 'Emite una solicitud de compra con estado pendiente a tus proveedores' }}
-            </p>
-        </div>
-        <button class="new-order-drawer__close" type="button" aria-label="Cerrar" (click)="close()">
-            <i stp-icon name="x" style="font-size: 1.125rem"></i>
-        </button>
-    </header>
-
-    <!-- ── Status Change Bar (Solo en modo edición) ────────────── -->
-    @if (isEditMode()) {
-    <section class="new-order-drawer__status-bar" aria-label="Cambiar estado de la orden">
-        <span class="new-order-drawer__status-label">
-            <i stp-icon name="arrow-counter-clockwise" class="icon--xs"></i>
-            Cambiar estado de la orden:
-        </span>
-
-        <div class="new-order-drawer__status-actions">
-            <!-- Botón Confirmar Orden -->
-            <stp-button
-                variant="primary"
-                btnStyle="solid"
-                size="sm"
-                radius="md"
-                [disabled]="!canSubmit() || isSubmitting()"
-                [loading]="isSubmitting() && pendingActionStatus() === 'confirmado'"
-                (click)="confirmOrder()">
-                <i stp-icon name="check-circle" class="icon--xs"></i>
-                <span>Confirmar orden</span>
-            </stp-button>
-
-            <!-- Botón Cancelar Orden -->
-            <stp-button
-                variant="danger"
-                btnStyle="outlined"
-                size="sm"
-                radius="md"
-                [disabled]="isSubmitting()"
-                [loading]="isSubmitting() && pendingActionStatus() === 'cancelado'"
-                (click)="cancelOrder()">
-                <i stp-icon name="x-circle" class="icon--xs"></i>
-                <span>Cancelar orden</span>
+            <h2 class="new-order-drawer__success-title">¡Operación registrada!</h2>
+            <p class="new-order-drawer__success-sub">La orden de compra fue registrada con éxito.</p>
+            <stp-button variant="primary" btnStyle="solid" radius="md" size="md"
+                (click)="done()">
+                Listo
             </stp-button>
         </div>
-    </section>
-    }
-
-    <!-- ── Step Switch: Lista de Productos vs Formulario para Agregar ── -->
-    @if (currentStep() === 'list') {
-        <stp-order-products-step
-            [items]="itemsDraft()"
-            [suppliers]="suppliers"
-            [selectedSupplierId]="selectedSupplierId()"
-            [paymentTerms]="paymentTerms()"
-            [expectedDeliveryDate]="expectedDeliveryDate()"
-            [notes]="notes()"
-            [totalAmount]="totalAmount()"
-            [isEditMode]="isEditMode()"
-            [canSubmit]="canSubmit()"
-            [isSubmitting]="isSubmitting()"
-            [pendingActionStatus]="pendingActionStatus()"
-            (addProduct)="openAddProduct()"
-            (editProduct)="openEditProduct($event)"
-            (updateQuantity)="updateQty($event.productId, $event.quantity)"
-            (updateUnitCost)="updateUnitCost($event.productId, $event.unitCost)"
-            (removeItem)="removeItem($event)"
-            (supplierChange)="onSupplierChange($event)"
-            (paymentTermsChange)="paymentTerms.set($event)"
-            (expectedDeliveryDateChange)="expectedDeliveryDate.set($event)"
-            (notesChange)="notes.set($event)"
-            (saveChanges)="saveChanges()"
-            (createOrder)="createOrder()"
-            (close)="close()" />
     } @else {
-        <stp-add-product-step
-            [selectedSupplier]="selectedSupplier()"
-            [products]="availableProducts"
-            [existingDrafts]="itemsDraft()"
-            [initialProduct]="productToEdit()"
-            (productAdded)="onProductAdded($event)"
-            (back)="closeAddProduct()" />
+        <!-- Header -->
+        <header class="new-order-drawer__header">
+            <div>
+                <div class="new-order-drawer__title-row">
+                    <h2 class="new-order-drawer__title">
+                        {{ isEditMode() ? 'Editar Orden ' + existingOrder?.code : 'Nueva Orden de Compra' }}
+                    </h2>
+                    <stp-badge [variant]="statusConfig[currentStatus()].variant" badgeStyle="solid" size="sm">
+                        <i stp-icon [name]="statusConfig[currentStatus()].icon" class="icon--xs"></i>
+                        {{ statusConfig[currentStatus()].label }}
+                    </stp-badge>
+                </div>
+                <p class="new-order-drawer__subtitle">
+                    {{ isEditMode() 
+                        ? 'Modifica los productos o detalles antes de confirmarla. Una vez confirmada no podrá editarse.' 
+                        : 'Emite una solicitud de compra con estado pendiente a tus proveedores' }}
+                </p>
+            </div>
+            <button class="new-order-drawer__close" type="button" aria-label="Cerrar" (click)="close()">
+                <i stp-icon name="x" style="font-size: 1.125rem"></i>
+            </button>
+        </header>
+
+        <!-- ── Status Change Bar (Solo en modo edición) ────────────── -->
+        @if (isEditMode()) {
+        <section class="new-order-drawer__status-bar" aria-label="Cambiar estado de la orden">
+            <span class="new-order-drawer__status-label">
+                <i stp-icon name="arrow-counter-clockwise" class="icon--xs"></i>
+                Cambiar estado de la orden:
+            </span>
+
+            <div class="new-order-drawer__status-actions">
+                <!-- Botón Confirmar Orden -->
+                <stp-button
+                    variant="primary"
+                    btnStyle="solid"
+                    size="sm"
+                    radius="md"
+                    [disabled]="!canSubmit() || isSubmitting()"
+                    [loading]="isSubmitting() && pendingActionStatus() === 'confirmado'"
+                    (click)="confirmOrder()">
+                    <i stp-icon name="check-circle" class="icon--xs"></i>
+                    <span>Confirmar orden</span>
+                </stp-button>
+
+                <!-- Botón Cancelar Orden -->
+                <stp-button
+                    variant="danger"
+                    btnStyle="outlined"
+                    size="sm"
+                    radius="md"
+                    [disabled]="isSubmitting()"
+                    [loading]="isSubmitting() && pendingActionStatus() === 'cancelado'"
+                    (click)="cancelOrder()">
+                    <i stp-icon name="x-circle" class="icon--xs"></i>
+                    <span>Cancelar orden</span>
+                </stp-button>
+            </div>
+        </section>
+        }
+
+        <!-- ── Step Switch: Lista de Productos vs Formulario para Agregar ── -->
+        @if (currentStep() === 'list') {
+            <stp-order-products-step
+                [items]="itemsDraft()"
+                [suppliers]="suppliers"
+                [selectedSupplierId]="selectedSupplierId()"
+                [paymentTerms]="paymentTerms()"
+                [expectedDeliveryDate]="expectedDeliveryDate()"
+                [notes]="notes()"
+                [totalAmount]="totalAmount()"
+                [isEditMode]="isEditMode()"
+                [canSubmit]="canSubmit()"
+                [isSubmitting]="isSubmitting()"
+                [pendingActionStatus]="pendingActionStatus()"
+                (addProduct)="openAddProduct()"
+                (editProduct)="openEditProduct($event)"
+                (updateQuantity)="updateQty($event.productId, $event.quantity)"
+                (updateUnitCost)="updateUnitCost($event.productId, $event.unitCost)"
+                (removeItem)="removeItem($event)"
+                (supplierChange)="onSupplierChange($event)"
+                (paymentTermsChange)="paymentTerms.set($event)"
+                (expectedDeliveryDateChange)="expectedDeliveryDate.set($event)"
+                (notesChange)="notes.set($event)"
+                (saveChanges)="saveChanges()"
+                (createOrder)="createOrder()"
+                (close)="close()" />
+        } @else {
+            <stp-add-product-step
+                [products]="availableProducts"
+                [existingDrafts]="itemsDraft()"
+                [initialProduct]="productToEdit()"
+                (productAdded)="onProductAdded($event)"
+                (back)="closeAddProduct()" />
+        }
     }
 
 </div>

@@ -415,6 +415,9 @@ body {
   background: var(--color-surface) !important;
   border-top-left-radius: var(--radius-lg) !important;
   border-top-right-radius: var(--radius-lg) !important;
+  max-width: 52rem !important;
+  margin-inline: auto !important;
+  width: 100% !important;
 }
 
 /* ── Credit detail drawer: expansion panel overrides ──────── */

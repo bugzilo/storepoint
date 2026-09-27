@@ -44,7 +44,7 @@ export interface OrderItemDraft {
   unitCost: number;
 }
 
-export type NewOrderDrawerStep = 'list' | 'add-product';
+export type NewOrderDrawerStep = 'list' | 'add-product' | 'success';
 
 @Component({
   selector: 'stp-new-order-drawer',
@@ -81,22 +81,22 @@ export class NewOrderDrawerComponent {
   // Step state: default is 'list'
   protected readonly currentStep = signal<NewOrderDrawerStep>('list');
   protected readonly productToEdit = signal<Product | null>(null);
+  protected readonly savedResult = signal<OrderFormDrawerResult | null>(null);
 
   protected readonly suppliers = MOCK_SUPPLIERS.filter(s => s.active);
   protected readonly availableProducts = MOCK_PRODUCTS;
   protected readonly categoryLabels = CATEGORY_LABELS;
   protected readonly categoryIcons = CATEGORY_ICONS;
 
-  // Form signals initialized from existing order or defaults
-  protected readonly selectedSupplierId = signal<string | number>(
-    this.existingOrder?.supplierId ?? this.suppliers[0]?.id ?? 1,
+  // Form signals initialized from existing order or defaults (empty when creating)
+  protected readonly selectedSupplierId = signal<string | number | undefined>(
+    this.existingOrder?.supplierId ?? undefined,
   );
   protected readonly paymentTerms = signal<string | number>(
-    this.existingOrder?.paymentTerms ?? 'Contado',
+    this.existingOrder?.paymentTerms ?? '',
   );
   protected readonly expectedDeliveryDate = signal<string>(
-    this.existingOrder?.expectedDeliveryDate ??
-      getLocalDateString(new Date(Date.now() + 86400000 * 2)),
+    this.existingOrder?.expectedDeliveryDate ?? '',
   );
   protected readonly notes = signal<string>(this.existingOrder?.notes ?? '');
 
@@ -107,7 +107,8 @@ export class NewOrderDrawerComponent {
 
   protected readonly selectedSupplier = computed(() => {
     const id = Number(this.selectedSupplierId());
-    return this.suppliers.find(s => s.id === id) ?? this.suppliers[0];
+    if (!id) return null;
+    return this.suppliers.find(s => s.id === id) ?? null;
   });
 
   protected readonly totalAmount = computed(() => {
@@ -146,19 +147,7 @@ export class NewOrderDrawerComponent {
       });
     }
 
-    // Default sample for new order
-    return [
-      {
-        product: this.availableProducts[0],
-        quantity: 20,
-        unitCost: 24.0,
-      },
-      {
-        product: this.availableProducts[1],
-        quantity: 15,
-        unitCost: 7.2,
-      },
-    ];
+    return [];
   }
 
   // ── Step Navigation Handlers ──────────────────────────────────
@@ -193,8 +182,9 @@ export class NewOrderDrawerComponent {
     this.closeAddProduct();
   }
 
-  protected onSupplierChange(supplierId: number | string): void {
-    this.selectedSupplierId.set(Number(supplierId));
+  protected onSupplierChange(supplierId: number | string | undefined): void {
+    const id = Number(supplierId);
+    this.selectedSupplierId.set(id > 0 ? id : undefined);
   }
 
   // ── Items Management Handlers ─────────────────────────────────
@@ -304,12 +294,12 @@ export class NewOrderDrawerComponent {
       code: isEdit && existing ? existing.code : `OC-2026-${orderNumber}`,
       createdAt: isEdit && existing ? existing.createdAt : new Date().toISOString(),
       expectedDeliveryDate: this.expectedDeliveryDate() || undefined,
-      supplierId: supplier.id,
-      supplierName: supplier.name,
-      supplierRuc: supplier.ruc,
-      supplierPhone: supplier.phone,
-      supplierEmail: supplier.email,
-      supplierAddress: supplier.address,
+      supplierId: supplier ? supplier.id : 0,
+      supplierName: supplier ? supplier.name : '',
+      supplierRuc: supplier ? supplier.ruc : '',
+      supplierPhone: supplier ? supplier.phone : '',
+      supplierEmail: supplier?.email,
+      supplierAddress: supplier?.address,
       status,
       items,
       totalAmount: this.totalAmount(),
@@ -320,7 +310,16 @@ export class NewOrderDrawerComponent {
     setTimeout(() => {
       this.isSubmitting.set(false);
       this.pendingActionStatus.set(null);
-      this.sheetRef.dismiss({ savedOrder, action });
+      if (action === 'created') {
+        this.savedResult.set({ savedOrder, action });
+        this.currentStep.set('success');
+      } else {
+        this.sheetRef.dismiss({ savedOrder, action });
+      }
     }, 300);
+  }
+
+  protected done(): void {
+    this.sheetRef.dismiss(this.savedResult());
   }
 }
