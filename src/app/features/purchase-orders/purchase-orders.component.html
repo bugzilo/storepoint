@@ -134,50 +134,37 @@
         @defer (on viewport) {
         <li class="order-list-item">
             <stp-card padding="md" radius="lg">
-                <!-- Top row: Code, Creation Date, Status -->
+                <!-- Header: Supplier info, Order Code, Date & Status -->
                 <div class="order-card__header">
-                    <div class="order-card__code-badge">
-                        <i stp-icon name="receipt" class="icon--sm text-primary-c"></i>
-                        <strong class="order-card__code">{{ order.code }}</strong>
-                    </div>
-
-                    <div class="order-card__header-right">
-                        <span class="order-card__date" title="Fecha de creación">
-                            <i stp-icon name="calendar" class="icon--xs"></i>
-                            {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
-                        </span>
-                        <stp-badge [variant]="statusVariant(order.status)" badgeStyle="solid" size="sm">
-                            <i stp-icon [name]="statusIcon(order.status)" class="icon--xs"></i>
-                            {{ statusLabel(order.status) }}
-                        </stp-badge>
-                    </div>
-                </div>
-
-                <!-- Middle: Supplier Info with stp-avatar & Items summary -->
-                <div class="order-card__body">
                     <div class="order-card__supplier-row">
                         <stp-avatar [name]="order.supplierName" size="sm" variant="primary" />
                         <div class="order-card__supplier-info">
                             <span class="order-card__supplier-name">{{ order.supplierName }}</span>
-                            <span class="order-card__supplier-meta">
-                                RUC {{ order.supplierRuc }} · Tel {{ order.supplierPhone }}
-                            </span>
+                            <div class="order-card__supplier-meta">
+                                <span class="order-card__code">{{ order.code }}</span>
+                                <span class="order-card__meta-sep" aria-hidden="true">·</span>
+                                <span>RUC {{ order.supplierRuc }}</span>
+                                <span class="order-card__meta-sep" aria-hidden="true">·</span>
+                                <span class="order-card__date" title="Fecha de creación">
+                                    <i stp-icon name="calendar" class="icon--xs"></i>
+                                    {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Products summary count -->
-                    <div class="order-card__products">
-                        <div class="order-card__products-header">
-                            <span class="order-card__products-count">
-                                <i stp-icon name="package" class="icon--xs"></i>
-                                {{ order.items.length }} producto{{ order.items.length !== 1 ? 's' : '' }} · {{ totalUnits(order) }} unidades
-                            </span>
-                            <span class="order-card__payment-terms">
-                                <i stp-icon name="credit-card" class="icon--xs"></i>
-                                {{ order.paymentTerms }}
-                            </span>
-                        </div>
-                    </div>
+                    <stp-badge [variant]="statusVariant(order.status)" badgeStyle="solid" size="sm">
+                        <i stp-icon [name]="statusIcon(order.status)" class="icon--xs"></i>
+                        {{ statusLabel(order.status) }}
+                    </stp-badge>
+                </div>
+
+                <!-- Middle: Order Items Summary Component (Compact & simple) -->
+                <div class="order-card__body">
+                    <stp-order-items-list
+                        [items]="order.items"
+                        [paymentTerms]="order.paymentTerms"
+                        [expectedDeliveryDate]="order.expectedDeliveryDate" />
                 </div>
 
                 <!-- Bottom: Total and Lifecycle Actions -->
@@ -188,19 +175,12 @@
                     </div>
 
                     <div class="order-card__actions">
-                        @if (isConfirmed(order)) {
-                        <!-- CONFIRMADO: Download PDF enabled -->
-                        <stp-button variant="primary" btnStyle="outlined" size="sm" radius="md"
+                        @if (canDownloadPdf(order)) {
+                        <!-- CONFIRMADO / COMPLETADO: Download PDF enabled -->
+                        <stp-button [variant]="isConfirmed(order) ? 'primary' : 'surface'" btnStyle="outlined" size="sm" radius="md"
                             (click)="downloadPdf(order, $event)">
                             <i stp-icon name="download-simple" class="icon--xs"></i>
                             Descargar PDF
-                        </stp-button>
-                        } @else if (order.status === 'completado') {
-                        <!-- COMPLETADO: Download PDF enabled -->
-                        <stp-button variant="surface" btnStyle="outlined" size="sm" radius="md"
-                            (click)="downloadPdf(order, $event)">
-                            <i stp-icon name="download-simple" class="icon--xs"></i>
-                            PDF
                         </stp-button>
                         }
 

@@ -43,6 +43,7 @@ import {
   isOrderConfirmed,
   isOrderEditable,
 } from './purchase-orders.data';
+import { OrderItemsListComponent } from './order-items-list/order-items-list.component';
 
 @Component({
   selector: 'stp-purchase-orders',
@@ -60,6 +61,7 @@ import {
     InputComponent,
     AvatarComponent,
     EmptyStateComponent,
+    OrderItemsListComponent,
   ],
   templateUrl: './purchase-orders.component.html',
   styleUrl: './purchase-orders.component.scss',
