@@ -1,0 +1,247 @@
+<div class="order-drawer" role="dialog" aria-modal="true" aria-label="Detalle de orden de compra">
+    <!-- Drag handle -->
+    <div class="order-drawer__handle" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <header class="order-drawer__header">
+        <div class="order-drawer__header-main">
+            <div class="order-drawer__code-row">
+                <span class="order-drawer__code">{{ order().code }}</span>
+                <stp-badge [variant]="statusVariant(order().status)" badgeStyle="solid" size="md">
+                    <i stp-icon [name]="statusIcon(order().status)" class="icon--xs"></i>
+                    {{ statusLabel(order().status) }}
+                </stp-badge>
+            </div>
+            <p class="order-drawer__subtitle">
+                <i stp-icon name="calendar" class="icon--xs"></i>
+                Creada el {{ order().createdAt | date:'d \'de\' MMMM, yyyy \'a las\' HH:mm' }}
+            </p>
+        </div>
+        <button class="order-drawer__close" type="button" aria-label="Cerrar detalle" (click)="close()">
+            <i stp-icon name="x" style="font-size: 1.125rem"></i>
+        </button>
+    </header>
+
+    <div class="order-drawer__body">
+
+        <!-- ── PDF Notification Feedback ─────────────────────── -->
+        @if (pdfNotification()) {
+        <div class="order-drawer__notification" role="status" aria-live="polite">
+            <i stp-icon name="file-text" class="icon--sm text-primary-c"></i>
+            <span>{{ pdfNotification() }}</span>
+        </div>
+        }
+
+        <!-- ── Lifecycle Status Banner ───────────────────────── -->
+        <div class="order-drawer__status-banner"
+            [class.order-drawer__status-banner--pendiente]="isEditable()"
+            [class.order-drawer__status-banner--confirmado]="isConfirmed()"
+            [class.order-drawer__status-banner--completado]="isCompleted()"
+            [class.order-drawer__status-banner--cancelado]="isCancelled()">
+
+            <div class="order-drawer__banner-icon">
+                <i stp-icon [name]="statusIcon(order().status)" class="icon--sm"></i>
+            </div>
+            <div class="order-drawer__banner-content">
+                @if (isEditable()) {
+                <strong class="order-drawer__banner-title">Orden Pendiente de Confirmación</strong>
+                <p class="order-drawer__banner-desc">
+                    Esta orden puede ser editada o cancelada. Al confirmarla, quedará fijada como vista informativa.
+                </p>
+                } @else if (isConfirmed()) {
+                <strong class="order-drawer__banner-title">Orden Confirmada (No editable)</strong>
+                <p class="order-drawer__banner-desc">
+                    Esta orden se encuentra en firme y no admite modificaciones. Puedes descargar el comprobante en PDF.
+                </p>
+                } @else if (isCompleted()) {
+                <strong class="order-drawer__banner-title">Orden Completada</strong>
+                <p class="order-drawer__banner-desc">
+                    La recepción de mercadería y el cierre administrativo de esta orden fueron completados.
+                </p>
+                } @else if (isCancelled()) {
+                <strong class="order-drawer__banner-title">Orden Cancelada</strong>
+                <p class="order-drawer__banner-desc">
+                    Esta solicitud de compra fue anulada mientras se encontraba pendiente y no puede ser modificada.
+                </p>
+                }
+            </div>
+        </div>
+
+        <!-- Supplier info using stp-card & stp-avatar -->
+        <section class="order-drawer__section" aria-label="Información del proveedor">
+            <h3 class="order-drawer__section-title">Proveedor</h3>
+            <stp-card padding="md" radius="md">
+                <div class="order-drawer__supplier-card">
+                    <stp-avatar [name]="order().supplierName" size="md" variant="primary" />
+                    <div class="order-drawer__supplier-details">
+                        <strong class="order-drawer__supplier-name">{{ order().supplierName }}</strong>
+                        <div class="order-drawer__supplier-meta">
+                            <span><i stp-icon name="identification-card" class="icon--xs"></i> RUC: {{ order().supplierRuc }}</span>
+                            <span><i stp-icon name="phone" class="icon--xs"></i> {{ order().supplierPhone }}</span>
+                        </div>
+                        @if (order().supplierAddress) {
+                        <p class="order-drawer__supplier-address">
+                            <i stp-icon name="map-pin" class="icon--xs"></i> {{ order().supplierAddress }}
+                        </p>
+                        }
+                    </div>
+                </div>
+            </stp-card>
+        </section>
+
+        <!-- Products breakdown using stp-card -->
+        <section class="order-drawer__section" aria-label="Productos de la orden">
+            <div class="order-drawer__section-header">
+                <h3 class="order-drawer__section-title">
+                    Productos solicitados ({{ order().items.length }})
+                </h3>
+                <span class="order-drawer__units-badge">{{ totalUnits() }} unidades</span>
+            </div>
+
+            <div class="order-drawer__items-list">
+                @for (item of order().items; track item.productId) {
+                <stp-card padding="sm" radius="md">
+                    <div class="order-drawer__item-row">
+                        <!-- Product thumbnail -->
+                        <div class="order-drawer__item-thumb">
+                            @if (item.imageUrl) {
+                            <img [src]="item.imageUrl" [alt]="item.productName" class="order-drawer__thumb-img" />
+                            } @else {
+                            <div class="order-drawer__thumb-placeholder">
+                                <i stp-icon name="package" class="icon--xs text-secondary"></i>
+                            </div>
+                            }
+                        </div>
+
+                        <div class="order-drawer__item-main">
+                            <strong class="order-drawer__item-name">{{ item.productName }}</strong>
+                            <span class="order-drawer__item-qty text-secondary">
+                                {{ item.quantity }} {{ item.unit }}s × S/ {{ item.unitCost | number:'1.2-2' }}
+                            </span>
+                        </div>
+                        <div class="order-drawer__item-subtotal">
+                            <span>S/ {{ item.subtotal | number:'1.2-2' }}</span>
+                        </div>
+                    </div>
+                </stp-card>
+                }
+            </div>
+        </section>
+
+        <!-- Financial breakdown using stp-card -->
+        <section class="order-drawer__section" aria-label="Resumen de pago">
+            <h3 class="order-drawer__section-title">Resumen económico</h3>
+            <stp-card padding="md" radius="md">
+                <div class="order-drawer__summary">
+                    <div class="order-drawer__summary-row">
+                        <span class="text-secondary">Subtotal</span>
+                        <span>S/ {{ subtotal() | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="order-drawer__summary-row">
+                        <span class="text-secondary">IGV (18%)</span>
+                        <span>S/ {{ igv() | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="order-drawer__summary-divider"></div>
+                    <div class="order-drawer__summary-row order-drawer__summary-row--total">
+                        <strong class="text-primary-c">Total de la orden</strong>
+                        <strong class="order-drawer__total-amount">S/ {{ order().totalAmount | number:'1.2-2' }}</strong>
+                    </div>
+
+                    <div class="order-drawer__summary-conditions">
+                        <div class="order-drawer__condition-pill">
+                            <i stp-icon name="credit-card" class="icon--xs"></i>
+                            <span>Condición: <strong>{{ order().paymentTerms }}</strong></span>
+                        </div>
+                        @if (order().expectedDeliveryDate) {
+                        <div class="order-drawer__condition-pill">
+                            <i stp-icon name="calendar-check" class="icon--xs"></i>
+                            <span>Entrega esperada: <strong>{{ order().expectedDeliveryDate | date:'dd/MM/yyyy' }}</strong></span>
+                        </div>
+                        }
+                    </div>
+
+                    @if (order().notes) {
+                    <div class="order-drawer__notes">
+                        <span class="order-drawer__notes-title">Notas:</span>
+                        <p class="order-drawer__notes-text">{{ order().notes }}</p>
+                    </div>
+                    }
+                </div>
+            </stp-card>
+        </section>
+
+    </div><!-- /order-drawer__body -->
+
+    <!-- Footer actions strictly obeying the business lifecycle rules -->
+    <footer class="order-drawer__footer">
+        @if (isEditable()) {
+        <!-- PENDIENTE: Can edit, confirm, or cancel -->
+        <div class="order-drawer__footer-left">
+            <stp-button variant="danger" btnStyle="outlined" size="md" radius="md"
+                [loading]="isProcessing()"
+                (click)="onCancelClick()">
+                <i stp-icon name="x-circle" class="icon--xs"></i>
+                Cancelar orden
+            </stp-button>
+        </div>
+
+        <div class="order-drawer__footer-right">
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
+                Cerrar
+            </stp-button>
+            <stp-button variant="surface" btnStyle="solid" size="md" radius="md" (click)="onEditClick()">
+                <i stp-icon name="pencil-simple" class="icon--xs"></i>
+                Editar orden
+            </stp-button>
+            <stp-button variant="primary" btnStyle="solid" size="md" radius="md"
+                [loading]="isProcessing()"
+                (click)="onConfirmClick()">
+                <i stp-icon name="check-circle" class="icon--xs"></i>
+                Confirmar orden
+            </stp-button>
+        </div>
+        } @else if (isConfirmed()) {
+        <!-- CONFIRMADO: Read-only, Download PDF enabled, can mark as completed -->
+        <div class="order-drawer__footer-left">
+            <stp-button variant="primary" btnStyle="outlined" size="md" radius="md" (click)="onDownloadPdfClick()">
+                <i stp-icon name="download-simple" class="icon--xs"></i>
+                Descargar PDF
+            </stp-button>
+        </div>
+
+        <div class="order-drawer__footer-right">
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
+                Cerrar
+            </stp-button>
+            <stp-button variant="success" btnStyle="solid" size="md" radius="md"
+                [loading]="isProcessing()"
+                (click)="onCompleteClick()">
+                <i stp-icon name="check" class="icon--xs"></i>
+                Marcar como completada
+            </stp-button>
+        </div>
+        } @else if (isCompleted()) {
+        <!-- COMPLETADO: Informative, Download PDF enabled -->
+        <div class="order-drawer__footer-left">
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="onDownloadPdfClick()">
+                <i stp-icon name="download-simple" class="icon--xs"></i>
+                Descargar PDF
+            </stp-button>
+        </div>
+
+        <div class="order-drawer__footer-right">
+            <stp-button variant="surface" btnStyle="solid" size="md" radius="md" (click)="close()">
+                Cerrar
+            </stp-button>
+        </div>
+        } @else {
+        <!-- CANCELADO: Read-only -->
+        <div class="order-drawer__footer-right">
+            <stp-button variant="surface" btnStyle="solid" size="md" radius="md" (click)="close()">
+                Cerrar
+            </stp-button>
+        </div>
+        }
+    </footer>
+
+</div>

@@ -1,0 +1,248 @@
+<div class="purchase-orders-page">
+
+    <!-- ── PDF Notification Feedback ─────────────────────────── -->
+    @if (pdfFeedbackMessage()) {
+    <div class="purchase-orders-toast" role="status" aria-live="polite">
+        <i stp-icon name="file-text" class="icon--sm text-primary-c"></i>
+        <span>{{ pdfFeedbackMessage() }}</span>
+    </div>
+    }
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <header #ordersHeader class="purchase-orders-header">
+        <div class="purchase-orders-header__row">
+            <div>
+                <h1 class="purchase-orders-header__title">Órdenes de Compra</h1>
+                <p class="purchase-orders-header__subtitle">
+                    {{ orders().length }} orden{{ orders().length !== 1 ? 'es' : '' }} registradas
+                    · {{ pendingCount() }} pendiente{{ pendingCount() !== 1 ? 's' : '' }}
+                </p>
+            </div>
+            <stp-button variant="surface" btnStyle="solid" size="md" radius="md" (click)="openNewOrderDrawer()">
+                <i stp-icon name="plus" style="font-size: 1rem"></i>
+                Nueva orden
+            </stp-button>
+        </div>
+    </header>
+
+    <!-- ── Sticky search + filters ────────────────────────── -->
+    <div class="purchase-orders-sticky-bar sticky-bar"
+        [class.purchase-orders-sticky-bar--stuck]="isStuck()"
+        [class.sticky-bar--stuck]="isStuck()">
+
+        <!-- Filter Row: stp-search + stp-input (creation date) -->
+        <div class="purchase-orders-filters">
+            <!-- 1. stp-search component from demo -->
+            <section class="purchase-orders-search" aria-label="Buscar orden por código">
+                <stp-search
+                    size="md"
+                    placeholder="Buscar código (ej: OC-2026-008)..."
+                    [(value)]="orderCodeQuery"
+                    (cleared)="clearCodeSearch()" />
+            </section>
+
+            <!-- 2. stp-input component from demo (creation date) -->
+            <section class="purchase-orders-date" aria-label="Filtrar por fecha de creación">
+                <div class="purchase-orders-date__wrapper">
+                    <stp-input
+                        label="Fecha de creación"
+                        type="date"
+                        [(value)]="dateFilter"
+                        (valueChange)="onDateChange($event)" />
+                    @if (dateFilter()) {
+                    <button class="purchase-orders-date__clear" type="button" aria-label="Limpiar fecha"
+                        (click)="clearDateFilter()">
+                        <i stp-icon name="x" style="font-size: 0.875rem"></i>
+                    </button>
+                    }
+                </div>
+            </section>
+        </div>
+
+        <!-- 3. Quick Chips (Date periods & statuses) -->
+        <section class="purchase-orders-categories" aria-label="Filtros rápidos">
+            <div class="purchase-orders-categories__scroll" role="tablist">
+                <!-- Date Period chips -->
+                @for (period of datePeriods; track period.id) {
+                <stp-button class="purchase-orders-category-chip"
+                    [class.purchase-orders-category-chip--active]="activePeriod() === period.id"
+                    role="tab" size="sm" radius="full"
+                    [variant]="activePeriod() === period.id ? 'primary' : 'surface'"
+                    [btnStyle]="activePeriod() === period.id ? 'solid' : 'outlined'"
+                    [attr.aria-selected]="activePeriod() === period.id"
+                    (click)="setDatePeriod(period.id)">
+                    <span aria-hidden="true">{{ period.icon }}</span>
+                    {{ period.label }}
+                </stp-button>
+                }
+
+                <div class="purchase-orders-categories__divider" aria-hidden="true"></div>
+
+                <!-- Status chips -->
+                @for (st of statusFilters; track st.id) {
+                <stp-button class="purchase-orders-category-chip"
+                    [class.purchase-orders-category-chip--active]="activeStatus() === st.id"
+                    role="tab" size="sm" radius="full"
+                    [variant]="activeStatus() === st.id ? 'primary' : 'surface'"
+                    [btnStyle]="activeStatus() === st.id ? 'solid' : 'outlined'"
+                    [attr.aria-selected]="activeStatus() === st.id"
+                    (click)="setStatusFilter(st.id)">
+                    <span aria-hidden="true">{{ st.icon }}</span>
+                    {{ st.label }}
+                </stp-button>
+                }
+            </div>
+        </section>
+
+    </div><!-- /purchase-orders-sticky-bar -->
+
+    <!-- ── Orders list (shown directly when entering the module) ── -->
+    @if (filteredOrders().length === 0) {
+    <!-- ── stp-empty-state inside stp-card from demo ─────── -->
+    <stp-card padding="lg" radius="xl">
+        <stp-empty-state
+            icon="magnifying-glass"
+            title="Sin órdenes encontradas"
+            [description]="emptyStateDescription()">
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="full" (click)="clearAllFilters()">
+                <i stp-icon name="arrow-counter-clockwise" style="font-size: 0.875rem"></i>
+                Restablecer todos los filtros
+            </stp-button>
+        </stp-empty-state>
+    </stp-card>
+    } @else {
+
+    <!-- ── Results Meta bar ───────────────────────────────── -->
+    <div class="purchase-orders-meta">
+        <span class="purchase-orders-meta__count">
+            Mostrando <strong>{{ filteredOrders().length }}</strong> de {{ orders().length }} orden{{ orders().length !== 1 ? 'es' : '' }}
+            @if (hasActiveFilters()) {
+            <span class="purchase-orders-meta__tag">Filtrado</span>
+            }
+        </span>
+        @if (hasActiveFilters()) {
+        <button class="purchase-orders-meta__clear" type="button" (click)="clearAllFilters()">
+            <i stp-icon name="arrow-counter-clockwise" class="icon--xs"></i>
+            Limpiar filtros
+        </button>
+        }
+    </div>
+
+    <!-- ── Orders List with stp-card from demo ───────────── -->
+    <ul class="purchase-orders-list" aria-label="Lista de órdenes de compra" role="list">
+        @for (order of filteredOrders(); track order.id) {
+        @defer (on viewport) {
+        <li class="order-list-item">
+            <stp-card padding="md" radius="lg">
+                <!-- Top row: Code, Creation Date, Status -->
+                <div class="order-card__header">
+                    <div class="order-card__code-badge">
+                        <i stp-icon name="receipt" class="icon--sm text-primary-c"></i>
+                        <strong class="order-card__code">{{ order.code }}</strong>
+                    </div>
+
+                    <div class="order-card__header-right">
+                        <span class="order-card__date" title="Fecha de creación">
+                            <i stp-icon name="calendar" class="icon--xs"></i>
+                            {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                        </span>
+                        <stp-badge [variant]="statusVariant(order.status)" badgeStyle="solid" size="sm">
+                            <i stp-icon [name]="statusIcon(order.status)" class="icon--xs"></i>
+                            {{ statusLabel(order.status) }}
+                        </stp-badge>
+                    </div>
+                </div>
+
+                <!-- Middle: Supplier Info with stp-avatar & Items summary -->
+                <div class="order-card__body">
+                    <div class="order-card__supplier-row">
+                        <stp-avatar [name]="order.supplierName" size="sm" variant="primary" />
+                        <div class="order-card__supplier-info">
+                            <span class="order-card__supplier-name">{{ order.supplierName }}</span>
+                            <span class="order-card__supplier-meta">
+                                RUC {{ order.supplierRuc }} · Tel {{ order.supplierPhone }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Products summary count -->
+                    <div class="order-card__products">
+                        <div class="order-card__products-header">
+                            <span class="order-card__products-count">
+                                <i stp-icon name="package" class="icon--xs"></i>
+                                {{ order.items.length }} producto{{ order.items.length !== 1 ? 's' : '' }} · {{ totalUnits(order) }} unidades
+                            </span>
+                            <span class="order-card__payment-terms">
+                                <i stp-icon name="credit-card" class="icon--xs"></i>
+                                {{ order.paymentTerms }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom: Total and Lifecycle Actions -->
+                <div class="order-card__footer">
+                    <div class="order-card__amount-group">
+                        <span class="order-card__amount-label">Total</span>
+                        <strong class="order-card__amount">S/ {{ order.totalAmount | number:'1.2-2' }}</strong>
+                    </div>
+
+                    <div class="order-card__actions">
+                        @if (isEditable(order)) {
+                        <!-- PENDIENTE: Can edit directly -->
+                        <stp-button variant="primary" btnStyle="solid" size="sm" radius="md"
+                            (click)="openEditOrderDrawer(order, $event)">
+                            <i stp-icon name="pencil-simple" class="icon--xs"></i>
+                            Editar
+                        </stp-button>
+                        <stp-button variant="surface" btnStyle="outlined" size="sm" radius="md"
+                            (click)="openOrderDetail(order)">
+                            <i stp-icon name="eye" class="icon--xs"></i>
+                            Detalle
+                        </stp-button>
+                        } @else if (isConfirmed(order)) {
+                        <!-- CONFIRMADO: Informative, Download PDF enabled -->
+                        <stp-button variant="primary" btnStyle="outlined" size="sm" radius="md"
+                            (click)="downloadPdf(order, $event)">
+                            <i stp-icon name="download-simple" class="icon--xs"></i>
+                            Descargar PDF
+                        </stp-button>
+                        <stp-button variant="surface" btnStyle="solid" size="sm" radius="md"
+                            (click)="openOrderDetail(order)">
+                            <i stp-icon name="eye" class="icon--xs"></i>
+                            Detalle
+                        </stp-button>
+                        } @else if (order.status === 'completado') {
+                        <!-- COMPLETADO: Informative, Download PDF enabled -->
+                        <stp-button variant="surface" btnStyle="outlined" size="sm" radius="md"
+                            (click)="downloadPdf(order, $event)">
+                            <i stp-icon name="download-simple" class="icon--xs"></i>
+                            PDF
+                        </stp-button>
+                        <stp-button variant="surface" btnStyle="solid" size="sm" radius="md"
+                            (click)="openOrderDetail(order)">
+                            <i stp-icon name="eye" class="icon--xs"></i>
+                            Detalle
+                        </stp-button>
+                        } @else {
+                        <!-- CANCELADO: Informative -->
+                        <stp-button variant="surface" btnStyle="solid" size="sm" radius="md"
+                            (click)="openOrderDetail(order)">
+                            <i stp-icon name="eye" class="icon--xs"></i>
+                            Detalle
+                        </stp-button>
+                        }
+                    </div>
+                </div>
+            </stp-card>
+        </li>
+        } @placeholder {
+        <li class="order-card__placeholder">
+            <stp-shimmer radius="lg"></stp-shimmer>
+        </li>
+        }
+        }
+    </ul>
+    }
+
+</div><!-- /purchase-orders-page -->

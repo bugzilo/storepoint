@@ -1,0 +1,322 @@
+<div class="new-order-drawer" role="dialog" aria-modal="true"
+    [attr.aria-label]="isEditMode() ? 'Editar orden de compra' : 'Nueva orden de compra'">
+
+    <!-- Drag handle -->
+    <div class="new-order-drawer__handle" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <header class="new-order-drawer__header">
+        <div>
+            <div class="new-order-drawer__title-row">
+                <h2 class="new-order-drawer__title">
+                    {{ isEditMode() ? 'Editar Orden ' + existingOrder?.code : 'Nueva Orden de Compra' }}
+                </h2>
+                @if (isEditMode()) {
+                <stp-badge variant="warning" badgeStyle="solid" size="sm">
+                    <i stp-icon name="clock" class="icon--xs"></i>
+                    Pendiente
+                </stp-badge>
+                }
+            </div>
+            <p class="new-order-drawer__subtitle">
+                {{ isEditMode() 
+                    ? 'Modifica los productos o detalles antes de confirmarla. Una vez confirmada no podrá editarse.' 
+                    : 'Emite una solicitud de compra con estado pendiente a tus proveedores' }}
+            </p>
+        </div>
+        <button class="new-order-drawer__close" type="button" aria-label="Cerrar" (click)="close()">
+            <i stp-icon name="x" style="font-size: 1.125rem"></i>
+        </button>
+    </header>
+
+    <div class="new-order-drawer__body">
+
+        <!-- Supplier selection using stp-select -->
+        <section class="new-order-drawer__section">
+            <stp-select
+                label="Proveedor *"
+                size="md"
+                [options]="supplierOptions()"
+                [(value)]="selectedSupplierId" />
+        </section>
+
+        <!-- Terms & Delivery Date using stp-select and stp-input -->
+        <div class="new-order-drawer__row-2">
+            <section class="new-order-drawer__section">
+                <stp-select
+                    label="Condición de pago"
+                    size="md"
+                    [options]="paymentTermOptions"
+                    [(value)]="paymentTerms" />
+            </section>
+
+            <section class="new-order-drawer__section">
+                <stp-input
+                    label="Fecha estimada entrega"
+                    type="date"
+                    [(value)]="expectedDeliveryDate" />
+            </section>
+        </div>
+
+        <!-- ── Product Selector & Live Preview ───────────────────── -->
+        <section class="new-order-drawer__section" aria-label="Gestión de productos">
+            <div class="new-order-drawer__section-header">
+                <span class="new-order-drawer__label font-semibold">
+                    Productos a solicitar ({{ itemsDraft().length }})
+                </span>
+                <div class="new-order-drawer__quick-add">
+                    <stp-select
+                        label="Buscar y previsualizar producto..."
+                        size="sm"
+                        [options]="productOptions()"
+                        [(value)]="selectedProductId"
+                        (valueChange)="onAddProductSelect($event)" />
+                </div>
+            </div>
+
+            <!-- ── Product Live Preview Card ──────────────────────── -->
+            @if (previewProduct(); as prod) {
+            <div class="new-order-drawer__preview-box">
+                <stp-card padding="md" radius="lg">
+                    <div class="product-preview">
+                        <!-- Preview Header -->
+                        <div class="product-preview__header">
+                            <div class="product-preview__header-title">
+                                <i stp-icon name="eye" class="icon--xs text-primary-c"></i>
+                                <span class="font-semibold text-sm">Vista previa del producto</span>
+                            </div>
+                            <button type="button" class="product-preview__close"
+                                aria-label="Cerrar vista previa"
+                                (click)="closePreview()">
+                                <i stp-icon name="x" class="icon--xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Preview Content -->
+                        <div class="product-preview__body">
+                            <!-- Image -->
+                            <div class="product-preview__media">
+                                @if (prod.imageUrl) {
+                                <img [src]="prod.imageUrl" [alt]="prod.name" class="product-preview__img" />
+                                } @else {
+                                <div class="product-preview__img-placeholder">
+                                    <i stp-icon name="package" class="icon--md text-secondary"></i>
+                                </div>
+                                }
+                            </div>
+
+                            <!-- Details -->
+                            <div class="product-preview__info">
+                                <div class="product-preview__name-row">
+                                    <h4 class="product-preview__name">{{ prod.name }}</h4>
+                                    <stp-tag variant="surface" size="sm">
+                                        {{ categoryIcons[prod.category] }} {{ categoryLabels[prod.category] }}
+                                    </stp-tag>
+                                </div>
+
+                                <div class="product-preview__meta-row">
+                                    <!-- Stock Tag -->
+                                    <span class="product-preview__stock"
+                                        [class.product-preview__stock--low]="prod.stock > 0 && prod.stock <= 10"
+                                        [class.product-preview__stock--out]="prod.stock === 0">
+                                        <i stp-icon name="archive" class="icon--xs"></i>
+                                        Stock actual: <strong>{{ prod.stock }} {{ prod.unit }}(s)</strong>
+                                    </span>
+                                    <span class="product-preview__retail-price text-secondary">
+                                        Precio venta: S/ {{ prod.price | number:'1.2-2' }}
+                                    </span>
+                                </div>
+
+                                <!-- Inputs: Qty and Cost -->
+                                <div class="product-preview__controls">
+                                    <div class="product-preview__field">
+                                        <label class="product-preview__field-label" for="preview-qty">Cantidad:</label>
+                                        <stp-input-numeric
+                                            id="preview-qty"
+                                            size="sm"
+                                            radius="md"
+                                            [min]="1"
+                                            [value]="previewQuantity()"
+                                            (valueChange)="previewQuantity.set($event ?? 1)" />
+                                    </div>
+
+                                    <div class="product-preview__field">
+                                        <label class="product-preview__field-label" for="preview-cost">Costo compra (S/):</label>
+                                        <input
+                                            id="preview-cost"
+                                            type="number"
+                                            step="0.1"
+                                            min="0"
+                                            class="product-preview__cost-input"
+                                            [ngModel]="previewUnitCost()"
+                                            (ngModelChange)="previewUnitCost.set($event)" />
+                                    </div>
+
+                                    <div class="product-preview__subtotal">
+                                        <span class="product-preview__field-label">Subtotal:</span>
+                                        <strong class="product-preview__subtotal-val">
+                                            S/ {{ previewSubtotal() | number:'1.2-2' }}
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <!-- Add action -->
+                                <div class="product-preview__actions">
+                                    <stp-button variant="primary" btnStyle="solid" size="sm" radius="md"
+                                        (click)="confirmAddPreviewedProduct()">
+                                        <i stp-icon name="plus" class="icon--xs"></i>
+                                        Agregar a la orden
+                                    </stp-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </stp-card>
+            </div>
+            }
+
+            <!-- ── Items List ────────────────────────────────────── -->
+            <div class="new-order-drawer__items-list">
+                @for (item of itemsDraft(); track item.product.id) {
+                <stp-card padding="sm" radius="md">
+                    <div class="new-order-drawer__item-card-inner">
+                        <!-- Product thumbnail -->
+                        <div class="new-order-drawer__item-thumb">
+                            @if (item.product.imageUrl) {
+                            <img [src]="item.product.imageUrl" [alt]="item.product.name" class="new-order-drawer__thumb-img" />
+                            } @else {
+                            <div class="new-order-drawer__thumb-placeholder">
+                                <i stp-icon name="package" class="icon--xs text-secondary"></i>
+                            </div>
+                            }
+                        </div>
+
+                        <!-- Product info & quick preview button -->
+                        <div class="new-order-drawer__item-info">
+                            <div class="new-order-drawer__item-name-row">
+                                <strong class="new-order-drawer__item-title">{{ item.product.name }}</strong>
+                                <button type="button" class="new-order-drawer__inspect-btn"
+                                    title="Ver vista previa detallada del producto"
+                                    (click)="inspectProduct(item.product)">
+                                    <i stp-icon name="eye" class="icon--xs"></i>
+                                </button>
+                            </div>
+                            <span class="new-order-drawer__item-unit text-secondary">
+                                {{ item.product.unit }} · S/ {{ item.unitCost | number:'1.2-2' }} c/u
+                            </span>
+                        </div>
+
+                        <div class="new-order-drawer__item-controls">
+                            <!-- Numeric Stepper -->
+                            <div class="new-order-drawer__numeric-group">
+                                <span class="new-order-drawer__ctrl-label">Cant:</span>
+                                <stp-input-numeric
+                                    size="sm"
+                                    radius="md"
+                                    [min]="1"
+                                    [value]="item.quantity"
+                                    (valueChange)="updateQty(item.product.id, $event)" />
+                            </div>
+
+                            <!-- Subtotal -->
+                            <div class="new-order-drawer__item-total">
+                                <strong>S/ {{ (item.quantity * item.unitCost) | number:'1.2-2' }}</strong>
+                            </div>
+
+                            <!-- Delete button -->
+                            <button type="button" class="new-order-drawer__remove-btn"
+                                aria-label="Eliminar producto"
+                                (click)="removeItem(item.product.id)">
+                                <i stp-icon name="trash" class="icon--sm text-error"></i>
+                            </button>
+                        </div>
+                    </div>
+                </stp-card>
+                }
+
+                @if (itemsDraft().length === 0) {
+                <div class="new-order-drawer__empty-items">
+                    <i stp-icon name="package" class="icon--lg text-disabled"></i>
+                    <p>Agrega productos a la orden usando el menú superior</p>
+                </div>
+                }
+            </div>
+        </section>
+
+        <!-- Notes using stp-input -->
+        <section class="new-order-drawer__section">
+            <stp-input
+                label="Notas u observaciones para el proveedor"
+                [(value)]="notes" />
+        </section>
+
+        <!-- Total summary using stp-card -->
+        <stp-card padding="md" radius="md">
+            <div class="new-order-drawer__total-inner">
+                <span class="text-secondary font-medium">Total estimado de la orden</span>
+                <strong class="new-order-drawer__total-val">S/ {{ totalAmount() | number:'1.2-2' }}</strong>
+            </div>
+        </stp-card>
+
+    </div><!-- /body -->
+
+    <!-- Footer Actions -->
+    <footer class="new-order-drawer__footer">
+        @if (isEditMode()) {
+        <!-- Edit mode: Cancel order on left, save / confirm on right -->
+        <div class="new-order-drawer__footer-left">
+            <stp-button variant="danger" btnStyle="outlined" size="md" radius="md"
+                [loading]="isSubmitting()"
+                (click)="cancelOrder()">
+                <i stp-icon name="x-circle" class="icon--xs"></i>
+                Cancelar orden
+            </stp-button>
+        </div>
+
+        <div class="new-order-drawer__footer-right">
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
+                Cerrar
+            </stp-button>
+            <stp-button variant="surface" btnStyle="solid" size="md" radius="md"
+                [disabled]="!canSubmit()"
+                [loading]="isSubmitting()"
+                (click)="saveAsPending()">
+                <i stp-icon name="check" class="icon--xs"></i>
+                Guardar cambios
+            </stp-button>
+            <stp-button variant="primary" btnStyle="solid" size="md" radius="md"
+                [disabled]="!canSubmit()"
+                [loading]="isSubmitting()"
+                (click)="confirmOrder()">
+                <i stp-icon name="check-circle" class="icon--xs"></i>
+                Confirmar orden
+            </stp-button>
+        </div>
+        } @else {
+        <!-- Create mode: Close on left, save pending / confirm on right -->
+        <div class="new-order-drawer__footer-left">
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md" (click)="close()">
+                Cancelar
+            </stp-button>
+        </div>
+
+        <div class="new-order-drawer__footer-right">
+            <stp-button variant="surface" btnStyle="outlined" size="md" radius="md"
+                [disabled]="!canSubmit()"
+                [loading]="isSubmitting()"
+                (click)="saveAsPending()">
+                <i stp-icon name="clock" class="icon--xs"></i>
+                Guardar como pendiente
+            </stp-button>
+            <stp-button variant="primary" btnStyle="solid" size="md" radius="md"
+                [disabled]="!canSubmit()"
+                [loading]="isSubmitting()"
+                (click)="confirmOrder()">
+                <i stp-icon name="check-circle" class="icon--xs"></i>
+                Confirmar orden
+            </stp-button>
+        </div>
+        }
+    </footer>
+
+</div>

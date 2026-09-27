@@ -49,6 +49,21 @@ export const routes: Routes = [
                     import('./features/credits/credits.component').then(m => m.CreditsComponent),
             },
             {
+                path: AppRoutes.purchaseOrders,
+                loadComponent: () =>
+                    import('./features/purchase-orders/purchase-orders.component').then(m => m.PurchaseOrdersComponent),
+            },
+            {
+                path: 'ordenes-compra',
+                redirectTo: AppRoutes.purchaseOrders,
+                pathMatch: 'full',
+            },
+            {
+                path: 'compras',
+                redirectTo: AppRoutes.purchaseOrders,
+                pathMatch: 'full',
+            },
+            {
                 path: AppRoutes.demo,
                 loadComponent: () =>
                     import('./features/demo/demo.component').then(m => m.DemoComponent),
