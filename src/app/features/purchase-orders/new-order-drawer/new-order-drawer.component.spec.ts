@@ -221,5 +221,23 @@ describe('NewOrderDrawerComponent', () => {
       expect(added?.quantity).toBe(5);
       expect(added?.unitCost).toBe(15.0);
     });
+
+    it('should display the selected supplier informatively in add-product step without supplier search dropdown', () => {
+      createComponent['openAddProduct']();
+      createFixture.detectChanges();
+
+      const compiled = createFixture.nativeElement as HTMLElement;
+      const addStep = compiled.querySelector('stp-add-product-step');
+      expect(addStep).toBeTruthy();
+
+      // Informative supplier card is rendered
+      const supplierCard = addStep?.querySelector('.supplier-info-card');
+      expect(supplierCard).toBeTruthy();
+      expect(supplierCard?.textContent).toContain(createComponent['selectedSupplier']()?.name);
+
+      // Only 1 search-dropdown should exist in add-step (for products, none for suppliers)
+      const searchDropdowns = addStep?.querySelectorAll('stp-search-dropdown');
+      expect(searchDropdowns?.length).toBe(1);
+    });
   });
 });

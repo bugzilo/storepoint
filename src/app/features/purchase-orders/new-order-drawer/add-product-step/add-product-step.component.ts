@@ -51,8 +51,9 @@ import { OrderItemDraft } from '../new-order-drawer.component';
 })
 export class AddProductStepComponent {
   // ── Inputs ────────────────────────────────────────────────────
-  readonly suppliers = input.required<Supplier[]>();
+  readonly suppliers = input<Supplier[]>([]);
   readonly selectedSupplierId = input<string | number | undefined>(undefined);
+  readonly selectedSupplier = input<Supplier | null>(null);
   readonly products = input.required<Product[]>();
   readonly existingDrafts = input<OrderItemDraft[]>([]);
   readonly initialProduct = input<Product | null>(null);
@@ -69,13 +70,13 @@ export class AddProductStepComponent {
   protected readonly supplierCategoryIcons = SUPPLIER_CATEGORY_ICONS;
 
   // ── Supplier State ────────────────────────────────────────────
-  protected readonly currentSupplier = linkedSignal<Supplier | null>(() => {
+  protected readonly currentSupplier = computed<Supplier | null>(() => {
+    if (this.selectedSupplier()) {
+      return this.selectedSupplier();
+    }
     const id = Number(this.selectedSupplierId());
+    if (!id) return this.suppliers()[0] ?? null;
     return this.suppliers().find(s => s.id === id) ?? this.suppliers()[0] ?? null;
-  });
-
-  protected readonly supplierQuery = linkedSignal<string>(() => {
-    return this.currentSupplier()?.name ?? '';
   });
 
   // ── Product State ─────────────────────────────────────────────
@@ -119,12 +120,6 @@ export class AddProductStepComponent {
   });
 
   // ── Handlers ──────────────────────────────────────────────────
-  protected onSupplierSelect(sup: Supplier): void {
-    this.currentSupplier.set(sup);
-    this.supplierQuery.set(sup.name);
-    this.supplierSelected.emit(sup);
-  }
-
   protected onProductSelect(prod: Product): void {
     this.selectedProduct.set(prod);
     this.productQuery.set(prod.name);

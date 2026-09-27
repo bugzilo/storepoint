@@ -5,20 +5,29 @@
 }
 
 .order-drawer {
+    width: 100%;
+    min-width: 52rem;
+    margin-inline: auto;
+    max-height: 90dvh;
     display: flex;
     flex-direction: column;
-    max-height: 90vh;
     background-color: var(--color-bg);
     border-top-left-radius: var(--radius-lg);
     border-top-right-radius: var(--radius-lg);
     overflow: hidden;
 
+    @include bp.mobile-only {
+        max-width: 52rem;
+        min-width: unset;
+    }
+
     &__handle {
         width: 2.5rem;
         height: 0.25rem;
-        background-color: var(--color-border);
-        border-radius: var(--radius-full);
-        margin: 0.75rem auto 0.25rem;
+        border-radius: 9999px;
+        background: var(--color-border);
+        margin: 0.625rem auto 0;
+        flex-shrink: 0;
     }
 
     &__header {

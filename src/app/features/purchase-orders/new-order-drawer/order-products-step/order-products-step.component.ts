@@ -105,6 +105,10 @@ export class OrderProductsStepComponent {
     this.supplierChange.emit(sup.id);
   }
 
+  protected onSupplierCleared(): void {
+    this.supplierQuery.set('');
+  }
+
   protected onPaymentTermsSelect(value: string | number): void {
     this.paymentTermsChange.emit(String(value));
   }

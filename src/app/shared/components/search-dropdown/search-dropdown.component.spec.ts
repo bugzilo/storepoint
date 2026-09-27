@@ -248,5 +248,29 @@ describe('SearchDropdownComponent', () => {
     const actionBtn = element.querySelector<HTMLButtonElement>('.stp-search-dropdown__action-btn');
     expect(actionBtn).toBeNull();
   });
+
+  it('should NOT open dropdown or display items when input is focused without typing', () => {
+    const input = element.querySelector<HTMLInputElement>('.stp-search-dropdown__input')!;
+    input.dispatchEvent(new Event('focus'));
+    fixture.detectChanges();
+
+    const panel = element.querySelector('.stp-search-dropdown__panel');
+    expect(panel).toBeNull();
+  });
+
+  it('should close dropdown when query is cleared with backspace to empty', () => {
+    const input = element.querySelector<HTMLInputElement>('.stp-search-dropdown__input')!;
+    input.value = 'Arroz';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(element.querySelector('.stp-search-dropdown__panel')).toBeTruthy();
+
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(element.querySelector('.stp-search-dropdown__panel')).toBeNull();
+  });
 });
 

@@ -1,5 +1,6 @@
 <div class="new-order-drawer" role="dialog" aria-modal="true"
-    [attr.aria-label]="isEditMode() ? 'Editar orden de compra' : 'Nueva orden de compra'">
+    [attr.aria-label]="isEditMode() ? 'Editar orden de compra' : 'Nueva orden de compra'"
+    (click)="$event.stopPropagation()">
 
     <!-- Drag handle -->
     <div class="new-order-drawer__handle" aria-hidden="true"></div>
@@ -93,12 +94,10 @@
             (close)="close()" />
     } @else {
         <stp-add-product-step
-            [suppliers]="suppliers"
-            [selectedSupplierId]="selectedSupplierId()"
+            [selectedSupplier]="selectedSupplier()"
             [products]="availableProducts"
             [existingDrafts]="itemsDraft()"
             [initialProduct]="productToEdit()"
-            (supplierSelected)="onSupplierChange($event.id)"
             (productAdded)="onProductAdded($event)"
             (back)="closeAddProduct()" />
     }

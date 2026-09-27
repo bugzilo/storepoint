@@ -22,54 +22,43 @@
   <!-- ── 2. Form Body ───────────────────────────────────────────── -->
   <div class="add-step__body">
 
-    <!-- Section 1: Selector de Proveedor con stp-search-dropdown -->
-    <section class="add-step__section" aria-label="Selección de proveedor">
+    <!-- Section 1: Proveedor de la orden (Solo informativo) -->
+    <section class="add-step__section" aria-label="Proveedor seleccionado">
       <div class="add-step__field-header">
         <label class="add-step__label font-semibold">
           <i stp-icon name="storefront" class="icon--xs text-primary-c"></i>
-          Proveedor *
+          Proveedor
         </label>
-        <span class="add-step__hint text-secondary">Busca por nombre o RUC</span>
+        <span class="add-step__hint text-secondary">Seleccionado en el paso anterior</span>
       </div>
 
-      <stp-search-dropdown
-        size="md"
-        placeholder="Escribe el nombre o RUC del proveedor..."
-        [items]="suppliers()"
-        labelKey="name"
-        descriptionKey="ruc"
-        [openOnFocus]="true"
-        [maxResults]="10"
-        [(value)]="supplierQuery"
-        (selected)="onSupplierSelect($event)">
-        <ng-template #itemTemplate let-sup let-active="isActive">
-          <div class="sup-option" [class.sup-option--active]="active">
-            <div class="sup-option__icon">
-              <span>{{ getSupplierCategoryIcon(sup.category) }}</span>
+      @if (currentSupplier(); as sup) {
+        <div class="supplier-info-card">
+          <div class="supplier-info-card__icon">
+            <span>{{ getSupplierCategoryIcon(sup.category) }}</span>
+          </div>
+          <div class="supplier-info-card__body">
+            <div class="supplier-info-card__top">
+              <strong class="supplier-info-card__name">{{ sup.name }}</strong>
+              <stp-tag variant="surface" size="sm">
+                {{ getSupplierCategoryLabel(sup.category) }}
+              </stp-tag>
             </div>
-            <div class="sup-option__info">
-              <div class="sup-option__top">
-                <strong class="sup-option__name">{{ sup.name }}</strong>
-                <stp-tag variant="surface" size="sm">
-                  {{ getSupplierCategoryLabel(sup.category) }}
-                </stp-tag>
-              </div>
-              <div class="sup-option__bottom">
-                <span>RUC: {{ sup.ruc }}</span>
-                @if (sup.phone) {
-                  <span>· Tel: {{ sup.phone }}</span>
-                }
-              </div>
+            <div class="supplier-info-card__meta">
+              <span>RUC: {{ sup.ruc }}</span>
+              @if (sup.phone) {
+                <span>· Tel: {{ sup.phone }}</span>
+              }
+              @if (sup.email) {
+                <span>· {{ sup.email }}</span>
+              }
             </div>
           </div>
-        </ng-template>
-      </stp-search-dropdown>
-
-      <!-- Active Supplier Alert con stp-alert -->
-      @if (currentSupplier(); as sup) {
+        </div>
+      } @else {
         <stp-alert
-          variant="success"
-          [description]="'Proveedor seleccionado: <strong>' + sup.name + '</strong> (RUC: ' + sup.ruc + ')'">
+          variant="warning"
+          description="No se ha seleccionado un proveedor en el paso anterior.">
         </stp-alert>
       }
     </section>
@@ -91,7 +80,6 @@
         labelKey="name"
         imageKey="imageUrl"
         descriptionKey="category"
-        [openOnFocus]="true"
         [maxResults]="15"
         [(value)]="productQuery"
         (selected)="onProductSelect($event)">

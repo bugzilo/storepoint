@@ -19,10 +19,10 @@
         [items]="suppliers()"
         labelKey="name"
         descriptionKey="ruc"
-        [openOnFocus]="true"
         [maxResults]="10"
         [(value)]="supplierQuery"
-        (selected)="onSupplierSelect($event)">
+        (selected)="onSupplierSelect($event)"
+        (cleared)="onSupplierCleared()">
         <ng-template #itemTemplate let-sup let-active="isActive">
           <div class="sup-option" [class.sup-option--active]="active">
             <div class="sup-option__icon">

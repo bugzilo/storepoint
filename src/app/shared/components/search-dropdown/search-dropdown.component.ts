@@ -225,7 +225,7 @@ export class SearchDropdownComponent<T = unknown> implements ControlValueAccesso
 
     const q = this.value()?.trim() ?? '';
     if (!q) {
-      return list;
+      return this.openOnFocus() ? list : [];
     }
 
     const customFilter = this.filterFn();
@@ -254,6 +254,7 @@ export class SearchDropdownComponent<T = unknown> implements ControlValueAccesso
       }
 
       // Default checks across common fields
+      const descKey = this.descriptionKey();
       const candidates = [
         record['name'],
         record['label'],
@@ -263,6 +264,8 @@ export class SearchDropdownComponent<T = unknown> implements ControlValueAccesso
         record['supplier'],
         record['sku'],
         record['code'],
+        record['ruc'],
+        ...(descKey && record[descKey] !== undefined ? [record[descKey]] : []),
       ].filter((v) => v !== undefined && v !== null);
 
       if (candidates.length > 0) {
@@ -286,7 +289,7 @@ export class SearchDropdownComponent<T = unknown> implements ControlValueAccesso
     if (this.disabled()) return false;
     if (!this.isOpen()) return false;
 
-    const query = this.value() ?? '';
+    const query = this.value()?.trim() ?? '';
     const min = this.minChars();
 
     if (query.length < min && !this.openOnFocus()) {
@@ -304,8 +307,7 @@ export class SearchDropdownComponent<T = unknown> implements ControlValueAccesso
   // ── Focus & Blur Handlers ───────────────────────────────────
   protected onFocus(): void {
     this.focused.set(true);
-    const query = this.value() ?? '';
-    if (this.openOnFocus() || query.length >= this.minChars()) {
+    if (this.openOnFocus()) {
       this.setOpen(true);
     }
   }
@@ -323,7 +325,7 @@ export class SearchDropdownComponent<T = unknown> implements ControlValueAccesso
     this.searchChange.emit(v);
 
     this.activeIndex.set(-1);
-    if (v.length >= this.minChars()) {
+    if (v.trim().length >= this.minChars()) {
       this.setOpen(true);
     } else if (!this.openOnFocus()) {
       this.setOpen(false);
@@ -341,8 +343,11 @@ export class SearchDropdownComponent<T = unknown> implements ControlValueAccesso
       case 'ArrowDown': {
         event.preventDefault();
         if (!this.isOpen()) {
-          this.setOpen(true);
-          this.activeIndex.set(0);
+          const q = this.value()?.trim() ?? '';
+          if (q.length >= this.minChars() || this.openOnFocus()) {
+            this.setOpen(true);
+            this.activeIndex.set(0);
+          }
         } else if (count > 0) {
           const next = (this.activeIndex() + 1) % count;
           this.activeIndex.set(next);
