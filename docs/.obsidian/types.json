@@ -1,0 +1,14 @@
+{
+  "types": {
+    "title": "text",
+    "type": "text",
+    "status": "text",
+    "tags": "tags",
+    "created": "date",
+    "updated": "date",
+    "author": "text",
+    "category": "text",
+    "module": "text",
+    "route": "text"
+  }
+}

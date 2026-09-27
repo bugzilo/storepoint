@@ -1,0 +1,12 @@
+{
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "00 - Inbox",
+  "attachmentFolderPath": "Assets",
+  "useMarkdownLinks": false,
+  "showLineNumber": true,
+  "foldHeading": true,
+  "foldIndent": true,
+  "promptDelete": false,
+  "livePreview": true
+}

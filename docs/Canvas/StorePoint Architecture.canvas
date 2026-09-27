@@ -1,0 +1,28 @@
+{
+	"nodes":[
+		{"id":"core-hub","type":"text","text":"# 🏪 StorePointWeb\n**Angular 21 + Capacitor 8 POS**\n\nSistema Punto de Venta multiplataforma (Web, iOS, Android).","x":400,"y":0,"width":340,"height":180,"color":"1"},
+		{"id":"arch-stack","type":"file","file":"Architecture/Tech Stack.md","x":50,"y":220,"width":300,"height":220,"color":"2"},
+		{"id":"arch-state","type":"file","file":"Architecture/State Management.md","x":420,"y":220,"width":300,"height":220,"color":"2"},
+		{"id":"arch-mobile","type":"file","file":"Architecture/Mobile & Capacitor.md","x":780,"y":220,"width":300,"height":220,"color":"2"},
+		{"id":"ui-system","type":"file","file":"Design System/UI System Rules.md","x":-300,"y":220,"width":300,"height":220,"color":"4"},
+		{"id":"feat-orders","type":"file","file":"Features/Purchase Orders.md","x":1040,"y":520,"width":280,"height":220,"color":"3"},
+		{"id":"feat-suppliers","type":"file","file":"Features/Suppliers Management.md","x":1040,"y":800,"width":280,"height":200,"color":"3"},
+		{"id":"adr-hub","type":"file","file":"Decisions (ADR)/Decisions MOC.md","x":420,"y":-260,"width":300,"height":180,"color":"5"},
+		{"id":"arch-relations","type":"file","file":"Architecture/Component & Service Architecture.md","x":-310,"y":-340,"width":550,"height":380,"color":"2"},
+		{"id":"feat-sale","type":"file","file":"Features/POS & Sales.md","x":-140,"y":520,"width":280,"height":220,"color":"3"},
+		{"id":"feat-caja","type":"file","file":"Features/Cash Register (Caja).md","x":240,"y":520,"width":280,"height":220,"color":"3"},
+		{"id":"feat-credits","type":"file","file":"Features/Customer Credits.md","x":540,"y":520,"width":340,"height":280,"color":"3"}
+	],
+	"edges":[
+		{"id":"e-hub-adr","fromNode":"core-hub","fromSide":"top","toNode":"adr-hub","toSide":"bottom","label":"Gobernanza"},
+		{"id":"e-hub-ui","fromNode":"core-hub","fromSide":"left","toNode":"ui-system","toSide":"top","label":"Design System"},
+		{"id":"e-hub-stack","fromNode":"core-hub","fromSide":"bottom","toNode":"arch-stack","toSide":"top"},
+		{"id":"e-hub-state","fromNode":"core-hub","fromSide":"bottom","toNode":"arch-state","toSide":"top"},
+		{"id":"e-hub-mobile","fromNode":"core-hub","fromSide":"bottom","toNode":"arch-mobile","toSide":"top"},
+		{"id":"e-state-sale","fromNode":"arch-state","fromSide":"bottom","toNode":"feat-sale","toSide":"top","label":"Signals Cart"},
+		{"id":"e-sale-caja","fromNode":"feat-sale","fromSide":"right","toNode":"feat-caja","toSide":"left","label":"Ventas al contado"},
+		{"id":"e-sale-credits","fromNode":"feat-sale","fromSide":"right","toNode":"feat-credits","toSide":"left","label":"Ventas a crédito"},
+		{"id":"e-orders-suppliers","fromNode":"feat-orders","fromSide":"bottom","toNode":"feat-suppliers","toSide":"top","label":"Abastecimiento"},
+		{"id":"e-hub-relations","fromNode":"core-hub","fromSide":"top","toNode":"arch-relations","toSide":"bottom","label":"Relaciones y Contratos"}
+	]
+}

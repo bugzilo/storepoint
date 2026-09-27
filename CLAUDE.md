@@ -75,6 +75,7 @@ These rules are **mandatory**. Follow them on every template and SCSS file.
 4. **Use `MatBottomSheet`** for all modal/drawer UI — never build custom overlays or `position:fixed` drawers.
 5. **Use SCSS partials** — import breakpoints and z-index from shared files, never redefine them.
 6. **Live preview** — visit `/demo` to see every component rendered with all variants.
+7. **Document business rules** — whenever creating, modifying or refactoring business logic, calculations, or state transitions, update `docs/Features/Reglas-De-Negocio.md`.
 
 ---
 
