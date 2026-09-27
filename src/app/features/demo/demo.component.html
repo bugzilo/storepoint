@@ -17,6 +17,7 @@
         <a class="demo-toc__link" href="#inputs">Input</a>
         <a class="demo-toc__link" href="#numeric">InputNumeric</a>
         <a class="demo-toc__link" href="#search">Search</a>
+        <a class="demo-toc__link" href="#search-dropdown">SearchDropdown</a>
         <a class="demo-toc__link" href="#select">Select</a>
         <a class="demo-toc__link" href="#checkboxes">Checkbox</a>
         <a class="demo-toc__link" href="#tabs">Tabs</a>
@@ -423,6 +424,177 @@
                 <div class="demo-chip demo-chip--block">
                     <stp-search size="lg" placeholder="Buscar producto..." [(value)]="searchVal" />
                     <span class="demo-chip__label">size="lg"</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SEARCH DROPDOWN
+    ════════════════════════════════════════════════════════════ -->
+    <section id="search-dropdown" class="demo-section">
+        <div class="demo-section-head">
+            <h2 class="demo-section-head__title">Search Dropdown</h2>
+            <code class="demo-section-head__selector">stp-search-dropdown</code>
+        </div>
+
+        <!-- ── Resumen de Diseño y Uso ─────────────────────────── -->
+        <div class="demo-template-guide">
+            <h3 class="demo-template-guide__title">
+                <i stp-icon name="info" class="icon--sm"></i>
+                Características del SearchDropdown
+            </h3>
+            <p class="demo-template-guide__desc">
+                • <strong>#itemTemplate (Único template opcional):</strong> Personaliza cómo se dibuja cada fila con <code>&lt;ng-template #itemTemplate let-item let-active="isActive"&gt;</code>.<br>
+                • <strong>Footer Fijo:</strong> Muestra el conteo cuando excede el límite y/o la acción fija <em>"Ver todo"</em> habilitable mediante el booleano <code>[showFooterAction]="true"</code>, emitiendo <code>(footerClick)</code>.<br>
+                • <strong>Sin Resultados:</strong> Fila 1 (ícono + mensaje). La opción de agregar o crear se habilita únicamente si se suministra el parámetro <code>[actionLabel]</code>, emitiendo <code>(action)</code>.
+            </p>
+        </div>
+
+        <!-- 1. Plantilla Predeterminada -->
+        <div class="demo-group">
+            <p class="demo-group__title">1. Plantilla Predeterminada (Máx. 5 Resultados)</p>
+            <div class="demo-stack">
+                <div class="demo-chip demo-chip--block">
+                    <stp-search-dropdown
+                        size="md"
+                        placeholder="Buscar producto (ej: arroz, aceite, coca)..."
+                        [items]="demoProducts"
+                        imageKey="imageUrl"
+                        descriptionKey="category"
+                        [(value)]="searchDropdownVal"
+                        (selected)="selectedDropdownProduct.set($event)"
+                    />
+                    <span class="demo-chip__label">size="md" • maxResults="5" (predeterminado) • sin templates custom</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. #itemTemplate (Único template opcional) -->
+        <div class="demo-group">
+            <p class="demo-group__title">2. #itemTemplate (Único template opcional para maqueta personalizada)</p>
+            <div class="demo-stack">
+                <div class="demo-chip demo-chip--block">
+                    <stp-search-dropdown
+                        size="md"
+                        placeholder="Buscar con itemTemplate (ej: arroz, aceite)..."
+                        [items]="demoProducts"
+                        [(value)]="searchDropdownCustomVal"
+                        (selected)="selectedDropdownProduct.set($event)"
+                    >
+                        <ng-template #itemTemplate let-product let-i="index" let-active="isActive">
+                            <div class="demo-search-custom-item" [class.demo-search-custom-item--active]="active">
+                                <img [src]="product.imageUrl" [alt]="product.name" class="demo-search-custom-thumb" />
+                                <div class="demo-search-custom-body">
+                                    <div class="demo-search-custom-row">
+                                        <span class="demo-search-custom-name">{{ product.name }}</span>
+                                        <stp-badge [variant]="product.stock > 30 ? 'success' : 'warning'" size="sm">
+                                            {{ product.stock }} {{ product.unit }}
+                                        </stp-badge>
+                                    </div>
+                                    <div class="demo-search-custom-meta">
+                                        <span class="demo-search-custom-cat">
+                                            <i stp-icon name="package" class="icon--xs"></i>
+                                            {{ product.category }}
+                                        </span>
+                                        <span class="demo-search-custom-price">S/ {{ product.price.toFixed(2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </stp-search-dropdown>
+                    <span class="demo-chip__label">&lt;ng-template #itemTemplate let-product let-active="isActive"&gt;</span>
+                </div>
+
+                @if (selectedDropdownProduct(); as p) {
+                    <div class="demo-chip demo-chip--block">
+                        <stp-alert
+                            variant="success"
+                            [title]="'Seleccionado: ' + p.name"
+                            [message]="'Precio: S/ ' + p.price.toFixed(2) + ' | Stock: ' + p.stock + ' ' + p.unit + ' | Categoría: ' + p.category"
+                        />
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- 3. Footer con acción "Ver todo" habilitada por boolean y evento (footerClick) -->
+        <div class="demo-group">
+            <p class="demo-group__title">3. Footer con acción "Ver todo" habilitada por boolean y evento (footerClick)</p>
+            <div class="demo-stack">
+                <div class="demo-chip demo-chip--block">
+                    <stp-search-dropdown
+                        size="md"
+                        placeholder="Escribe 'a' para ver footer fijo con acción 'Ver todo'..."
+                        [items]="demoProducts"
+                        imageKey="imageUrl"
+                        descriptionKey="category"
+                        [showFooterAction]="true"
+                        [(value)]="searchDropdownFooterVal"
+                        (footerClick)="footerNotification.set('Se hizo clic en el footer: Ver todo')"
+                    />
+                    <span class="demo-chip__label">[showFooterAction]="true" • acción fija "Ver todo" • evento (footerClick)</span>
+                </div>
+
+                @if (footerNotification(); as notif) {
+                    <div class="demo-chip demo-chip--block">
+                        <stp-alert
+                            variant="info"
+                            title="Evento de Footer Disparado"
+                            [message]="notif"
+                            [dismissible]="true"
+                            (dismissed)="footerNotification.set(null)"
+                        />
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- 4. Sin Resultados con Acción (actionLabel configurado) -->
+        <div class="demo-group">
+            <p class="demo-group__title">4. Sin Resultados con Acción (actionLabel configurado)</p>
+            <div class="demo-stack">
+                <div class="demo-chip demo-chip--block">
+                    <stp-search-dropdown
+                        size="md"
+                        placeholder="Escribe algo que no exista (ej: 'Galletas Oreo')..."
+                        [items]="demoProducts"
+                        actionLabel="Crear '{query}'"
+                        actionIcon="plus"
+                        emptyText="Sin coincidencias para '{query}'"
+                        [(value)]="searchDropdownCreateVal"
+                        (action)="registeredProductQuery.set($event)"
+                    />
+                    <span class="demo-chip__label">Fila 1: icono y texto • Fila 2: botón de acción habilitado por actionLabel</span>
+                </div>
+
+                @if (registeredProductQuery(); as query) {
+                    <div class="demo-chip demo-chip--block">
+                        <stp-alert
+                            variant="info"
+                            [title]="'Acción disparada: ' + query"
+                            [message]="'El usuario accionó: ' + query + '. El desarrollador decide libremente qué flujo ejecutar (crear, buscar en otra base, invitar, etc.).'"
+                            [dismissible]="true"
+                            (dismissed)="registeredProductQuery.set(null)"
+                        />
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- 5. Sin Resultados Solo Informativo (sin actionLabel) -->
+        <div class="demo-group">
+            <p class="demo-group__title">5. Sin Resultados Solo Informativo (sin actionLabel)</p>
+            <div class="demo-stack">
+                <div class="demo-chip demo-chip--block">
+                    <stp-search-dropdown
+                        size="md"
+                        placeholder="Escribe algo que no exista (no mostrará botón)..."
+                        [items]="demoProducts"
+                        emptyText="No se encontraron resultados para '{query}'"
+                        [(value)]="searchDropdownNoActionVal"
+                    />
+                    <span class="demo-chip__label">Sin actionLabel: solo se muestra el mensaje e ícono (sin botón de acción)</span>
                 </div>
             </div>
         </div>

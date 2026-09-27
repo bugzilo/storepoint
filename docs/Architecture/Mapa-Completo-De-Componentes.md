@@ -194,6 +194,7 @@ flowchart TD
 | **`SelectComponent`** | `stp-select` | `Sí` | `IconComponent` | `NewOrderDrawer`, `DemoComponent` |
 | **`CheckboxComponent`** | `stp-checkbox` | `Sí` | - | `DemoComponent`, formularios de selección múltiple |
 | **`SearchComponent`** | `stp-search` | `Sí` | `IconComponent` | `PurchaseOrdersComponent`, `CreditsComponent`, `SaleComponent` |
+| **`SearchDropdownComponent`** | `stp-search-dropdown` | `Sí` | `IconComponent` | `DemoComponent` |
 
 ---
 

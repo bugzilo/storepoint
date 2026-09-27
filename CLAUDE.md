@@ -93,6 +93,7 @@ All in `src/app/shared/components/`. Import the class directly — no module nee
 | `<stp-select>` | `label`, `options`, `size`, `hasError`, `[(value)]` | Float-label native select, CVA |
 | `<stp-checkbox>` | `label`, `variant`, `size`, `indeterminate`, `[(checked)]` | CVA |
 | `<stp-search>` | `placeholder`, `size`, `[(value)]`, `(cleared)` | Search bar with clear button, CVA |
+| `<stp-search-dropdown>` | `items`, `maxResults`, `placeholder`, `size`, `[(value)]`, `(selected)` | Search dropdown (max 5 items default, customizable template), CVA |
 
 ### Actions
 

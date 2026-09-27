@@ -1,0 +1,155 @@
+<div [ngClass]="hostClasses()">
+  <!-- Search Input Field -->
+  <div [ngClass]="fieldClasses()">
+    <i stp-icon name="magnifying-glass" class="stp-search-dropdown__icon icon--md" aria-hidden="true"></i>
+
+    <input
+      class="stp-search-dropdown__input"
+      type="search"
+      role="combobox"
+      aria-autocomplete="list"
+      [attr.aria-expanded]="shouldShowDropdown()"
+      [attr.aria-controls]="id() + '-listbox'"
+      [attr.aria-activedescendant]="activeIndex() >= 0 ? id() + '-option-' + activeIndex() : null"
+      [id]="id()"
+      [value]="value()"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      autocomplete="off"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+      [attr.aria-label]="placeholder()"
+    />
+
+    @if (loading()) {
+      <span class="stp-search-dropdown__spinner" aria-hidden="true"></span>
+    } @else if (hasValue()) {
+      <button
+        type="button"
+        class="stp-search-dropdown__clear icon-btn"
+        aria-label="Limpiar búsqueda"
+        (click)="clear()"
+      >
+        <i stp-icon name="x-circle" class="icon--sm"></i>
+      </button>
+    }
+  </div>
+
+  <!-- Results Dropdown Floating Panel -->
+  @if (shouldShowDropdown()) {
+    <div
+      class="stp-search-dropdown__panel"
+      [id]="id() + '-listbox'"
+      role="listbox"
+      (mousedown)="$event.preventDefault()"
+    >
+      <!-- Loading State -->
+      @if (loading()) {
+        <div class="stp-search-dropdown__state stp-search-dropdown__state--loading">
+          <span class="stp-search-dropdown__spinner" aria-hidden="true"></span>
+          <span>{{ loadingText() }}</span>
+        </div>
+      } @else if (displayedItems().length === 0) {
+        <!-- Empty State (Fila 1: icono y texto, Fila 2: botón de acción solo si actionLabel existe) -->
+        <div
+          class="stp-search-dropdown__state stp-search-dropdown__state--empty"
+          [class.stp-search-dropdown__state--with-action]="actionLabel()"
+        >
+          <div class="stp-search-dropdown__empty-content">
+            <i stp-icon name="magnifying-glass" class="stp-search-dropdown__empty-icon icon--sm" aria-hidden="true"></i>
+            <span class="stp-search-dropdown__empty-text">{{ formattedEmptyText() }}</span>
+          </div>
+
+          @if (actionLabel()) {
+            <button
+              type="button"
+              class="stp-search-dropdown__action-btn"
+              (click)="triggerAction($event)"
+            >
+              @if (actionIcon()) {
+                <i stp-icon [name]="actionIcon()" class="icon--xs" aria-hidden="true"></i>
+              }
+              <span>{{ formattedActionLabel() }}</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <!-- List of Results (Max 5 Elements) -->
+        <ul class="stp-search-dropdown__list">
+          @for (item of displayedItems(); track trackItem($index, item); let i = $index) {
+            <li
+              class="stp-search-dropdown__item"
+              [class.stp-search-dropdown__item--active]="i === activeIndex()"
+              [id]="id() + '-option-' + i"
+              role="option"
+              tabindex="-1"
+              [attr.aria-selected]="i === activeIndex()"
+              (mouseenter)="onItemMouseEnter(i)"
+              (click)="onItemClick(item, $event)"
+              (keydown.enter)="onItemClick(item, $event)"
+            >
+              @if (effectiveItemTemplate(); as tpl) {
+                <!-- Custom consumer template for icons, images, layout, tags, etc. -->
+                <ng-container
+                  *ngTemplateOutlet="
+                    tpl;
+                    context: {
+                      $implicit: item,
+                      item: item,
+                      index: i,
+                      isActive: i === activeIndex()
+                    }
+                  "
+                />
+              } @else {
+                <!-- Default item layout with icon, image, label and description -->
+                <div class="stp-search-dropdown__default-item">
+                  @if (getItemImage(item); as imgUrl) {
+                    <img [src]="imgUrl" [alt]="getItemLabel(item)" class="stp-search-dropdown__item-thumb" />
+                  } @else if (getItemIcon(item); as iconName) {
+                    <span class="stp-search-dropdown__item-icon">
+                      <i stp-icon [name]="iconName" class="icon--md"></i>
+                    </span>
+                  }
+
+                  <div class="stp-search-dropdown__item-body">
+                    <span class="stp-search-dropdown__item-label">{{ getItemLabel(item) }}</span>
+                    @if (getItemDescription(item); as desc) {
+                      <span class="stp-search-dropdown__item-desc">{{ desc }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+
+        <!-- Pinned Footer: Count Hint and/or Footer Action Button ("Ver todo") -->
+        @if (shouldShowFooter()) {
+          <div
+            class="stp-search-dropdown__footer"
+            [class.stp-search-dropdown__footer--between]="hasHint() && effectiveShowFooterAction()"
+          >
+            @if (hasHint()) {
+              <span class="stp-search-dropdown__hint-text">
+                Mostrando {{ displayedCount() }} de {{ totalCount() }} resultados
+              </span>
+            }
+            @if (effectiveShowFooterAction()) {
+              <button
+                type="button"
+                class="stp-search-dropdown__footer-btn"
+                (click)="onFooterClick($event)"
+              >
+                <span>{{ formattedFooterLabel() }}</span>
+                <i stp-icon name="arrow-right" class="icon--xs" aria-hidden="true"></i>
+              </button>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

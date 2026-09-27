@@ -10,17 +10,19 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { InputComponent } from '../../shared/components/input/input.component';
 import { InputNumericComponent } from '../../shared/components/input-numeric/input-numeric.component';
 import { SearchComponent } from '../../shared/components/search/search.component';
+import { SearchDropdownComponent } from '../../shared/components/search-dropdown/search-dropdown.component';
 import { SelectComponent } from '../../shared/components/select/select.component';
 import { ShimmerComponent } from '../../shared/components/shimmer/shimmer.component';
 import { TabsComponent } from '../../shared/components/tabs/tabs.component';
 import { TagComponent } from '../../shared/components/tag/tag.component';
+import { MOCK_PRODUCTS, Product } from '../sale/sale.data';
 
 @Component({
   selector: 'stp-demo',
   imports: [
     AlertComponent, AvatarComponent, BadgeComponent, ButtonComponent,
     CardComponent, CheckboxComponent, EmptyStateComponent, IconComponent,
-    InputComponent, InputNumericComponent, SearchComponent, SelectComponent,
+    InputComponent, InputNumericComponent, SearchComponent, SearchDropdownComponent, SelectComponent,
     ShimmerComponent, TabsComponent, TagComponent,
   ],
   templateUrl: './demo.component.html',
@@ -44,6 +46,15 @@ export class DemoComponent {
   protected readonly errorVal    = signal('valor@invalido');
   protected readonly numericVal  = signal<number | undefined>(3);
   protected readonly searchVal   = signal('');
+  protected readonly searchDropdownVal = signal('');
+  protected readonly searchDropdownCustomVal = signal('');
+  protected readonly searchDropdownFooterVal = signal('');
+  protected readonly searchDropdownCreateVal = signal('');
+  protected readonly searchDropdownNoActionVal = signal('');
+  protected readonly selectedDropdownProduct = signal<Product | null>(null);
+  protected readonly registeredProductQuery = signal<string | null>(null);
+  protected readonly footerNotification = signal<string | null>(null);
+  protected readonly demoProducts = MOCK_PRODUCTS;
   protected readonly selectVal   = signal<string | number>('');
 
   protected readonly selectOptions = [
