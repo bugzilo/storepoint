@@ -11,11 +11,14 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
+import { NgClass } from '@angular/common';
 import { IconComponent } from '../icon/icon.component';
+
+export type InputSize = 'sm' | 'md' | 'lg';
 
 @Component({
   selector: 'stp-input',
-  imports: [FormsModule, IconComponent],
+  imports: [FormsModule, NgClass, IconComponent],
   templateUrl: './input.component.html',
   styleUrl: './input.component.scss',
   providers: [
@@ -30,9 +33,11 @@ export class InputComponent implements ControlValueAccessor {
   /** Floating label text. When omitted, no label is rendered. */
   readonly label = input<string>('');
   readonly type = input<string>('text');
+  readonly size = input<InputSize>('md');
   readonly hasError = input<boolean>(false);
   readonly id = input<string>('stp-' + Math.random().toString(36).slice(2, 7));
   readonly autocomplete = input<string>('off');
+  readonly placeholder = input<string>('');
 
   readonly value = model<string>('');
 
@@ -41,6 +46,18 @@ export class InputComponent implements ControlValueAccessor {
 
   /** true when type is password — enables built-in show/hide toggle */
   protected readonly isPassword = computed(() => this.type() === 'password');
+
+  /** Native picker types (date, time, etc.) display default browser prompts (e.g. dd/mm/yyyy) */
+  protected readonly isDateOrTimeType = computed(() => {
+    const t = this.type();
+    return (
+      t === 'date' ||
+      t === 'datetime-local' ||
+      t === 'time' ||
+      t === 'month' ||
+      t === 'week'
+    );
+  });
 
   /** Tracks whether password is currently visible */
   protected readonly showPassword = signal(false);
@@ -55,10 +72,25 @@ export class InputComponent implements ControlValueAccessor {
     return this.type();
   });
 
-  /** Label floats when focused OR has content */
+  /** Label floats when focused, has value, has placeholder, or is a native date/time picker */
   protected readonly floated = computed(
-    () => this.focused() || (this.value()?.length ?? 0) > 0,
+    () =>
+      this.focused() ||
+      (this.value()?.length ?? 0) > 0 ||
+      this.isDateOrTimeType() ||
+      !!this.placeholder(),
   );
+
+  protected readonly hostClasses = computed(() => ({
+    'stp-wrapper': true,
+    [`stp-wrapper--${this.size()}`]: true,
+    'stp-focused': this.focused(),
+    'stp-floated': this.floated(),
+    'stp-disabled': this.disabled(),
+    'stp-error': this.hasError(),
+    'stp-no-label': !this.label(),
+    'stp-is-date': this.isDateOrTimeType(),
+  }));
 
   private onChange: (v: string) => void = () => {};
   private onTouched: () => void = () => {};

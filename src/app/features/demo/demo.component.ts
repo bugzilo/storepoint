@@ -43,6 +43,7 @@ export class DemoComponent {
   // ── Form controls ────────────────────────────────────────────
   protected readonly textVal     = signal('');
   protected readonly passwordVal = signal('');
+  protected readonly dateVal     = signal('');
   protected readonly errorVal    = signal('valor@invalido');
   protected readonly numericVal  = signal<number | undefined>(3);
   protected readonly searchVal   = signal('');
