@@ -1,5 +1,5 @@
 import { Component, computed, input } from '@angular/core';
-import { NgClass, NgStyle } from '@angular/common';
+import { NgClass } from '@angular/common';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type AvatarVariant = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'surface';

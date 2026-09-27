@@ -22,11 +22,7 @@ export const routes: Routes = [
                 loadComponent: () =>
                     import('./features/notices/notices.component').then(m => m.NoticesComponent),
             },
-            {
-                path: AppRoutes.products,
-                loadComponent: () =>
-                    import('./features/products/products.component').then(m => m.ProductsComponent),
-            },
+
             {
                 path: AppRoutes.sale,
                 loadComponent: () =>

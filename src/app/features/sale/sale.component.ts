@@ -14,14 +14,14 @@ import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { SaleProductCardComponent } from '../../shared/components/sale-product-card/sale-product-card.component';
 import { CartDrawerComponent, CartBottomSheetData, CartDismissResult } from '../../shared/components/cart-drawer/cart-drawer.component';
+import type { CartItem } from '../../core/models/cart.model';
 import {
-  CartItem,
   CATEGORY_ICONS,
   CATEGORY_LABELS,
   MOCK_PRODUCTS,
   Product,
   ProductCategory,
-} from '../products/products.data';
+} from './sale.data';
 import { ShimmerComponent } from '../../shared/components/shimmer/shimmer.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 

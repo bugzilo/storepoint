@@ -1,7 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { IconComponent } from '../../icon/icon.component';
 import { DecimalPipe } from '@angular/common';
-import { CartItem } from '../../../../features/products/products.data';
+import type { CartItem } from '../../../../core/models/cart.model';
 import { ButtonComponent } from '../../button/button.component';
 import { CartItemComponent } from '../../cart-item/cart-item.component';
 import { SwipeItemComponent, SwipeOption } from '../../swipe-item/swipe-item.component';

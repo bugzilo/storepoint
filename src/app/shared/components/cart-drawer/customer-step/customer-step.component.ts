@@ -4,7 +4,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { ButtonComponent } from '../../button/button.component';
 import { IconComponent } from '../../icon/icon.component';
 import { CustomerService, Customer } from '../../../../core/services/customer.service';
-import { CartItem } from '../../../../features/products/products.data';
+import type { CartItem } from '../../../../core/models/cart.model';
 import { PaymentData } from '../payment-step/payment-step.component';
 
 type CustomerStepView = 'search' | 'new-form' | 'update-confirm';

@@ -1,10 +1,10 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
+import type { CartItem } from '../../../core/models/cart.model';
 import {
-    CartItem,
     CATEGORY_ICONS,
     ProductCategory,
-} from '../../../features/products/products.data';
+} from '../../../features/sale/sale.data';
 import { ButtonComponent } from '../button/button.component';
 import { IconComponent } from '../icon/icon.component';
 import { InputNumericComponent } from '../input-numeric/input-numeric.component';

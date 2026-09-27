@@ -1,4 +1,4 @@
-import type { CartItem } from '../products/products.data';
+import type { CartItem } from '../../core/models/cart.model';
 
 export type PaymentFrequency = 'semanal' | 'quincenal' | 'mensual';
 export type CreditStatus = 'active' | 'completed' | 'overdue';

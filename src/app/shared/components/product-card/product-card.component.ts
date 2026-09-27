@@ -4,7 +4,7 @@ import {
   CATEGORY_ICONS,
   Product,
   ProductCategory,
-} from '../../../features/products/products.data';
+} from '../../../features/sale/sale.data';
 
 @Component({
   selector: 'li[stp-product-card]',

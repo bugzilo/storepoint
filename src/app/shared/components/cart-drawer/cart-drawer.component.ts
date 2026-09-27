@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { CartItem } from '../../../features/products/products.data';
+import type { CartItem } from '../../../core/models/cart.model';
 import { CartStepComponent } from './cart-step/cart-step.component';
 import { PaymentStepComponent } from './payment-step/payment-step.component';
 import { CustomerStepComponent } from './customer-step/customer-step.component';
@@ -11,6 +11,7 @@ import type { Customer } from '../../../core/services/customer.service';
 
 export type { PaymentData, PaymentMethod, PaymentFrequency, CashPaymentData, CreditPaymentData } from './payment-step/payment-step.component';
 export type { Customer } from '../../../core/services/customer.service';
+export type { CartItem } from '../../../core/models/cart.model';
 
 export interface CartBottomSheetData {
   items: CartItem[];

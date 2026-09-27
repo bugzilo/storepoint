@@ -20,11 +20,6 @@ export interface Product {
   supplier?: string;
 }
 
-export interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   todos: 'Todos',
   abarrotes: 'Abarrotes',

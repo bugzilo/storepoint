@@ -34,7 +34,7 @@ npm run cap:android    # Build + sync + open Android Studio
 
 **Cross-platform storage**: `StorageService` detects `Capacitor.isNativePlatform()` at runtime and routes to either `@capacitor/preferences` (native) or `localStorage` (web). Components always call `StorageService` — never touch storage directly.
 
-**Product data**: Mock products live in `features/products/products.data.ts` and are imported by both `ProductsComponent` and `SaleComponent`. No backend integration yet.
+**Product data**: Mock products and product types live in `features/sale/sale.data.ts`. Cart models live in `core/models/cart.model.ts`. No backend integration yet.
 
 **Component prefix**: All selectors use `stp-` (element) or `stp` (attribute), enforced by ESLint.
 

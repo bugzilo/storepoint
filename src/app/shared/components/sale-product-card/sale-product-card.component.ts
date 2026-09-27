@@ -2,7 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, input, model, output, signal } from '@angular/core';
 import { ButtonComponent } from '../button/button.component';
 import { InputNumericComponent } from '../input-numeric/input-numeric.component';
-import { CATEGORY_ICONS, Product } from '../../../features/products/products.data';
+import { CATEGORY_ICONS, type Product } from '../../../features/sale/sale.data';
 
 @Component({
   selector: 'li[stp-sale-product-card]',

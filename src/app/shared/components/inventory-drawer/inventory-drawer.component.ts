@@ -18,7 +18,7 @@ import {
   CATEGORY_LABELS,
   Product,
   ProductCategory,
-} from '../../../features/products/products.data';
+} from '../../../features/sale/sale.data';
 
 interface InvNewProductForm {
   name: string;
