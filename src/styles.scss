@@ -504,3 +504,16 @@ body {
 .bg-info          { background-color: var(--color-info);          color: var(--color-info-fg); }
 .bg-info-light    { background-color: var(--color-info-light);    color: var(--color-info); }
 .text-info        { color: var(--color-info); }
+
+/* =========================================================
+   Mobile iOS auto-zoom prevention
+   iOS Safari forces zoom on input focus when font-size < 16px.
+   Setting a minimum of 16px on mobile prevents this behavior.
+   ========================================================= */
+@media (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
