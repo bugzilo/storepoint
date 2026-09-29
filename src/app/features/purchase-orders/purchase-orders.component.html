@@ -129,80 +129,16 @@
         }
     </div>
 
-    <!-- ── Orders List with stp-card from demo ───────────── -->
+    <!-- ── Orders List with stp-order-item ───────────── -->
     <ul class="purchase-orders-list" aria-label="Lista de órdenes de compra" role="list">
         @for (order of filteredOrders(); track order.id) {
         @defer (on viewport) {
         <li class="order-list-item">
-            <stp-card padding="md" radius="lg">
-                <!-- Header: Supplier info, Order Code, Date & Status -->
-                <div class="order-card__header">
-                    <div class="order-card__supplier-row">
-                        <stp-avatar [name]="order.supplierName" size="sm" variant="primary" />
-                        <div class="order-card__supplier-info">
-                            <span class="order-card__supplier-name">{{ order.supplierName }}</span>
-                            <div class="order-card__supplier-meta">
-                                <span class="order-card__code">{{ order.code }}</span>
-                                <span class="order-card__meta-sep" aria-hidden="true">·</span>
-                                <span>RUC {{ order.supplierRuc }}</span>
-                                <span class="order-card__meta-sep" aria-hidden="true">·</span>
-                                <span class="order-card__date" title="Fecha de creación">
-                                    <i stp-icon name="calendar" class="icon--xs"></i>
-                                    {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <stp-badge [variant]="statusVariant(order.status)" badgeStyle="solid" size="sm">
-                        <i stp-icon [name]="statusIcon(order.status)" class="icon--xs"></i>
-                        {{ statusLabel(order.status) }}
-                    </stp-badge>
-                </div>
-
-                <!-- Middle: Order Items Summary Component (Compact & simple) -->
-                <div class="order-card__body">
-                    <stp-order-items-list
-                        [items]="order.items"
-                        [paymentTerms]="order.paymentTerms"
-                        [expectedDeliveryDate]="order.expectedDeliveryDate" />
-                </div>
-
-                <!-- Bottom: Total and Lifecycle Actions -->
-                <div class="order-card__footer">
-                    <div class="order-card__amount-group">
-                        <span class="order-card__amount-label">Total</span>
-                        <strong class="order-card__amount">S/ {{ order.totalAmount | number:'1.2-2' }}</strong>
-                    </div>
-
-                    <div class="order-card__actions">
-                        @if (canDownloadPdf(order)) {
-                        <!-- CONFIRMADO / COMPLETADO: Download PDF enabled -->
-                        <stp-button [variant]="isConfirmed(order) ? 'primary' : 'surface'" btnStyle="outlined" size="sm" radius="md"
-                            (click)="downloadPdf(order, $event)">
-                            <i stp-icon name="download-simple" class="icon--xs"></i>
-                            Descargar PDF
-                        </stp-button>
-                        }
-
-                        @if (isEditable(order)) {
-                        <!-- PENDIENTE: Can edit directly -->
-                        <stp-button variant="primary" btnStyle="solid" size="sm" radius="md"
-                            (click)="openEditOrderDrawer(order, $event)">
-                            <i stp-icon name="pencil-simple" class="icon--xs"></i>
-                            Editar
-                        </stp-button>
-                        } @else {
-                        <!-- OTROS ESTADOS: Informative detail -->
-                        <stp-button variant="surface" btnStyle="solid" size="sm" radius="md"
-                            (click)="openOrderDetail(order)">
-                            <i stp-icon name="eye" class="icon--xs"></i>
-                            Detalle
-                        </stp-button>
-                        }
-                    </div>
-                </div>
-            </stp-card>
+            <stp-order-item
+                [order]="order"
+                (edit)="openEditOrderDrawer($event)"
+                (detail)="openOrderDetail($event)"
+                (downloadPdf)="downloadPdf($event)" />
         </li>
         } @placeholder {
         <li class="order-card__placeholder">

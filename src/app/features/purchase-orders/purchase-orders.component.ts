@@ -8,17 +8,15 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
-import { BadgeComponent, BadgeVariant } from '../../shared/components/badge/badge.component';
 import { ShimmerComponent } from '../../shared/components/shimmer/shimmer.component';
 import { CardComponent } from '../../shared/components/card/card.component';
 import { SearchComponent } from '../../shared/components/search/search.component';
 import { InputComponent } from '../../shared/components/input/input.component';
-import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import {
   PurchaseOrderDetailDrawerComponent,
@@ -40,28 +38,23 @@ import {
   STATUS_FILTER_OPTIONS,
   canDownloadPdf,
   getLocalDateString,
-  isOrderConfirmed,
   isOrderEditable,
 } from './purchase-orders.data';
-import { OrderItemsListComponent } from './order-items-list/order-items-list.component';
+import { OrderItemComponent } from './order-item/order-item.component';
 
 @Component({
   selector: 'stp-purchase-orders',
   imports: [
     CommonModule,
-    DecimalPipe,
-    DatePipe,
     FormsModule,
     ButtonComponent,
     IconComponent,
-    BadgeComponent,
     ShimmerComponent,
     CardComponent,
     SearchComponent,
     InputComponent,
-    AvatarComponent,
     EmptyStateComponent,
-    OrderItemsListComponent,
+    OrderItemComponent,
   ],
   templateUrl: './purchase-orders.component.html',
   styleUrl: './purchase-orders.component.scss',
@@ -206,29 +199,9 @@ export class PurchaseOrdersComponent implements AfterViewInit, OnDestroy {
     this.activeStatus.set('todos');
   }
 
-  // ── Order status helpers ─────────────────────────────────────
-  protected statusLabel(status: PurchaseOrderStatus): string {
-    return this.statusConfig[status].label;
-  }
-
-  protected statusVariant(status: PurchaseOrderStatus): BadgeVariant {
-    return this.statusConfig[status].variant;
-  }
-
-  protected statusIcon(status: PurchaseOrderStatus): string {
-    return this.statusConfig[status].icon;
-  }
-
-  protected totalUnits(order: PurchaseOrder): number {
-    return order.items.reduce((sum, item) => sum + item.quantity, 0);
-  }
-
+  // ── Order helpers ────────────────────────────────────────────
   protected isEditable(order: PurchaseOrder): boolean {
     return isOrderEditable(order);
-  }
-
-  protected isConfirmed(order: PurchaseOrder): boolean {
-    return isOrderConfirmed(order);
   }
 
   protected canDownloadPdf(order: PurchaseOrder): boolean {

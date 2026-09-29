@@ -1,0 +1,67 @@
+<stp-card padding="md" radius="lg" (click)="onCardClick()">
+  <div class="order-card">
+    <!-- Header: Supplier info, Meta & Status Badge -->
+    <div class="order-card__header">
+      <div class="order-card__supplier-row">
+        <stp-avatar [name]="order().supplierName" size="sm" variant="primary" />
+        <div class="order-card__supplier-info">
+          <span class="order-card__supplier-name">{{ order().supplierName }}</span>
+          <div class="order-card__supplier-meta">
+            <span class="order-card__code">{{ order().code }}</span>
+            <span class="order-card__meta-sep" aria-hidden="true">·</span>
+            <span>RUC {{ order().supplierRuc }}</span>
+            <span class="order-card__meta-sep" aria-hidden="true">·</span>
+            <span class="order-card__date" title="Fecha de creación">
+              <i stp-icon name="calendar" class="icon--xs"></i>
+              {{ order().createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+            @if (totalItems() > 0) {
+              <span class="order-card__meta-sep" aria-hidden="true">·</span>
+              <span class="order-card__items-count" title="Cantidad de productos">
+                <i stp-icon name="package" class="icon--xs"></i>
+                {{ totalItems() }} {{ totalItems() === 1 ? 'producto' : 'productos' }}
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <stp-badge [variant]="statusVariant()" badgeStyle="solid" size="sm" class="order-card__badge">
+        <i stp-icon [name]="statusIcon()" class="icon--xs"></i>
+        {{ statusLabel() }}
+      </stp-badge>
+    </div>
+
+    <!-- Footer: Total amount and Lifecycle Actions -->
+    <div class="order-card__footer">
+      <div class="order-card__total">
+        <span class="order-card__total-label">Total</span>
+        <strong class="order-card__total-amount">S/ {{ order().totalAmount | number:'1.2-2' }}</strong>
+      </div>
+
+      <div class="order-card__actions">
+        @if (canDownloadPdf()) {
+          <stp-button class="order-card__action-btn" [variant]="isConfirmed() ? 'primary' : 'surface'" btnStyle="outlined" size="sm" radius="md"
+            (click)="onDownloadPdf($event)">
+            <i stp-icon name="download-simple" class="icon--xs"></i>
+            PDF
+          </stp-button>
+        }
+
+        @if (isEditable()) {
+          <stp-button class="order-card__action-btn" variant="primary" btnStyle="solid" size="sm" radius="md"
+            (click)="onEdit($event)">
+            <i stp-icon name="pencil-simple" class="icon--xs"></i>
+            Editar
+          </stp-button>
+        } @else {
+          <stp-button class="order-card__action-btn" variant="surface" btnStyle="solid" size="sm" radius="md"
+            (click)="onDetail($event)">
+            <i stp-icon name="eye" class="icon--xs"></i>
+            Detalle
+          </stp-button>
+        }
+      </div>
+    </div>
+  </div>
+</stp-card>
